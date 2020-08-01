@@ -2,7 +2,7 @@
 // detail/resolver_service.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2020 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -19,12 +19,11 @@
 
 #if !defined(BOOST_ASIO_WINDOWS_RUNTIME)
 
+#include <boost/asio/ip/basic_resolver_iterator.hpp>
 #include <boost/asio/ip/basic_resolver_query.hpp>
-#include <boost/asio/ip/basic_resolver_results.hpp>
-#include <boost/asio/detail/concurrency_hint.hpp>
-#include <boost/asio/detail/memory.hpp>
+#include <boost/asio/detail/addressof.hpp>
 #include <boost/asio/detail/resolve_endpoint_op.hpp>
-#include <boost/asio/detail/resolve_query_op.hpp>
+#include <boost/asio/detail/resolve_op.hpp>
 #include <boost/asio/detail/resolver_service_base.hpp>
 
 #include <boost/asio/detail/push_options.hpp>
@@ -34,9 +33,7 @@ namespace asio {
 namespace detail {
 
 template <typename Protocol>
-class resolver_service :
-  public execution_context_service_base<resolver_service<Protocol> >,
-  public resolver_service_base
+class resolver_service : public resolver_service_base
 {
 public:
   // The implementation type of the resolver. A cancellation token is used to
@@ -49,30 +46,17 @@ public:
   // The query type.
   typedef boost::asio::ip::basic_resolver_query<Protocol> query_type;
 
-  // The results type.
-  typedef boost::asio::ip::basic_resolver_results<Protocol> results_type;
+  // The iterator type.
+  typedef boost::asio::ip::basic_resolver_iterator<Protocol> iterator_type;
 
   // Constructor.
-  resolver_service(execution_context& context)
-    : execution_context_service_base<resolver_service<Protocol> >(context),
-      resolver_service_base(context)
+  resolver_service(boost::asio::io_service& io_service)
+    : resolver_service_base(io_service)
   {
-  }
-
-  // Destroy all user-defined handler objects owned by the service.
-  void shutdown()
-  {
-    this->base_shutdown();
-  }
-
-  // Perform any fork-related housekeeping.
-  void notify_fork(execution_context::fork_event fork_ev)
-  {
-    this->base_notify_fork(fork_ev);
   }
 
   // Resolve a query to a list of entries.
-  results_type resolve(implementation_type&, const query_type& query,
+  iterator_type resolve(implementation_type&, const query_type& query,
       boost::system::error_code& ec)
   {
     boost::asio::detail::addrinfo_type* address_info = 0;
@@ -81,30 +65,30 @@ public:
         query.service_name().c_str(), query.hints(), &address_info, ec);
     auto_addrinfo auto_address_info(address_info);
 
-    return ec ? results_type() : results_type::create(
+    return ec ? iterator_type() : iterator_type::create(
         address_info, query.host_name(), query.service_name());
   }
 
   // Asynchronously resolve a query to a list of entries.
-  template <typename Handler, typename IoExecutor>
-  void async_resolve(implementation_type& impl, const query_type& query,
-      Handler& handler, const IoExecutor& io_ex)
+  template <typename Handler>
+  void async_resolve(implementation_type& impl,
+      const query_type& query, Handler& handler)
   {
     // Allocate and construct an operation to wrap the handler.
-    typedef resolve_query_op<Protocol, Handler, IoExecutor> op;
+    typedef resolve_op<Protocol, Handler> op;
     typename op::ptr p = { boost::asio::detail::addressof(handler),
-      op::ptr::allocate(handler), 0 };
-    p.p = new (p.v) op(impl, query, scheduler_, handler, io_ex);
+      boost_asio_handler_alloc_helpers::allocate(
+        sizeof(op), handler), 0 };
+    p.p = new (p.v) op(impl, query, io_service_impl_, handler);
 
-    BOOST_ASIO_HANDLER_CREATION((scheduler_.context(),
-          *p.p, "resolver", &impl, 0, "async_resolve"));
+    BOOST_ASIO_HANDLER_CREATION((p.p, "resolver", &impl, "async_resolve"));
 
     start_resolve_op(p.p);
     p.v = p.p = 0;
   }
 
   // Resolve an endpoint to a list of entries.
-  results_type resolve(implementation_type&,
+  iterator_type resolve(implementation_type&,
       const endpoint_type& endpoint, boost::system::error_code& ec)
   {
     char host_name[NI_MAXHOST];
@@ -113,23 +97,23 @@ public:
         host_name, NI_MAXHOST, service_name, NI_MAXSERV,
         endpoint.protocol().type(), ec);
 
-    return ec ? results_type() : results_type::create(
+    return ec ? iterator_type() : iterator_type::create(
         endpoint, host_name, service_name);
   }
 
   // Asynchronously resolve an endpoint to a list of entries.
-  template <typename Handler, typename IoExecutor>
-  void async_resolve(implementation_type& impl, const endpoint_type& endpoint,
-      Handler& handler, const IoExecutor& io_ex)
+  template <typename Handler>
+  void async_resolve(implementation_type& impl,
+      const endpoint_type& endpoint, Handler& handler)
   {
     // Allocate and construct an operation to wrap the handler.
-    typedef resolve_endpoint_op<Protocol, Handler, IoExecutor> op;
+    typedef resolve_endpoint_op<Protocol, Handler> op;
     typename op::ptr p = { boost::asio::detail::addressof(handler),
-      op::ptr::allocate(handler), 0 };
-    p.p = new (p.v) op(impl, endpoint, scheduler_, handler, io_ex);
+      boost_asio_handler_alloc_helpers::allocate(
+        sizeof(op), handler), 0 };
+    p.p = new (p.v) op(impl, endpoint, io_service_impl_, handler);
 
-    BOOST_ASIO_HANDLER_CREATION((scheduler_.context(),
-          *p.p, "resolver", &impl, 0, "async_resolve"));
+    BOOST_ASIO_HANDLER_CREATION((p.p, "resolver", &impl, "async_resolve"));
 
     start_resolve_op(p.p);
     p.v = p.p = 0;

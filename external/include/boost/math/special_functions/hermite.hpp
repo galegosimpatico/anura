@@ -18,7 +18,7 @@
 namespace boost{
 namespace math{
 
-// Recurrence relation for Hermite polynomials:
+// Recurrance relation for Hermite polynomials:
 template <class T1, class T2, class T3>
 inline typename tools::promote_args<T1, T2, T3>::type 
    hermite_next(unsigned n, T1 x, T2 Hn, T3 Hnm1)
@@ -28,7 +28,7 @@ inline typename tools::promote_args<T1, T2, T3>::type
 
 namespace detail{
 
-// Implement Hermite polynomials via recurrence:
+// Implement Hermite polynomials via recurrance:
 template <class T>
 T hermite_imp(unsigned n, T x)
 {

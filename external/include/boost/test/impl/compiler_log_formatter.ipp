@@ -26,6 +26,8 @@
 
 #include <boost/test/utils/basic_cstring/io.hpp>
 #include <boost/test/utils/lazy_ostream.hpp>
+#include <boost/test/utils/setcolor.hpp>
+
 
 // Boost
 #include <boost/version.hpp>
@@ -78,16 +80,14 @@ compiler_log_formatter::log_finish( std::ostream& ostr )
 //____________________________________________________________________________//
 
 void
-compiler_log_formatter::log_build_info( std::ostream& output, bool log_build_info )
+compiler_log_formatter::log_build_info( std::ostream& output )
 {
-    if(log_build_info) {
-        output  << "Platform: " << BOOST_PLATFORM            << '\n'
-                << "Compiler: " << BOOST_COMPILER            << '\n'
-                << "STL     : " << BOOST_STDLIB              << '\n'
-                << "Boost   : " << BOOST_VERSION/100000      << "."
-                                << BOOST_VERSION/100 % 1000  << "."
-                                << BOOST_VERSION % 100       << std::endl;
-    }
+    output  << "Platform: " << BOOST_PLATFORM            << '\n'
+            << "Compiler: " << BOOST_COMPILER            << '\n'
+            << "STL     : " << BOOST_STDLIB              << '\n'
+            << "Boost   : " << BOOST_VERSION/100000      << "."
+                            << BOOST_VERSION/100 % 1000  << "."
+                            << BOOST_VERSION % 100       << std::endl;
 }
 
 //____________________________________________________________________________//
@@ -182,25 +182,30 @@ compiler_log_formatter::log_entry_start( std::ostream& output, log_entry_data co
     switch( let ) {
         case BOOST_UTL_ET_INFO:
             print_prefix( output, entry_data.m_file_name, entry_data.m_line_num );
-            output << setcolor( m_color_output, term_attr::BRIGHT, term_color::GREEN, term_color::ORIGINAL, &m_color_state);
+            if( m_color_output )
+                output << setcolor( term_attr::BRIGHT, term_color::GREEN );
             output << "info: ";
             break;
         case BOOST_UTL_ET_MESSAGE:
-            output << setcolor( m_color_output, term_attr::BRIGHT, term_color::CYAN, term_color::ORIGINAL, &m_color_state);
+            if( m_color_output )
+                output << setcolor( term_attr::BRIGHT, term_color::CYAN );
             break;
         case BOOST_UTL_ET_WARNING:
             print_prefix( output, entry_data.m_file_name, entry_data.m_line_num );
-            output << setcolor( m_color_output, term_attr::BRIGHT, term_color::YELLOW, term_color::ORIGINAL, &m_color_state);
+            if( m_color_output )
+                output << setcolor( term_attr::BRIGHT, term_color::YELLOW );
             output << "warning: in \"" << test_phase_identifier() << "\": ";
             break;
         case BOOST_UTL_ET_ERROR:
             print_prefix( output, entry_data.m_file_name, entry_data.m_line_num );
-            output << setcolor( m_color_output, term_attr::BRIGHT, term_color::RED, term_color::ORIGINAL, &m_color_state);
+            if( m_color_output )
+                output << setcolor( term_attr::BRIGHT, term_color::RED );
             output << "error: in \"" << test_phase_identifier() << "\": ";
             break;
         case BOOST_UTL_ET_FATAL_ERROR:
             print_prefix( output, entry_data.m_file_name, entry_data.m_line_num );
-            output << setcolor( m_color_output, term_attr::UNDERLINE, term_color::RED, term_color::ORIGINAL, &m_color_state);
+            if( m_color_output )
+                output << setcolor( term_attr::UNDERLINE, term_color::RED );
             output << "fatal error: in \"" << test_phase_identifier() << "\": ";
             break;
     }
@@ -228,7 +233,7 @@ void
 compiler_log_formatter::log_entry_finish( std::ostream& output )
 {
     if( m_color_output )
-        output << utils::setcolor(m_color_output, &m_color_state);
+        output << utils::setcolor();
 
     output << std::endl;
 }
@@ -277,7 +282,7 @@ compiler_log_formatter::entry_context_finish( std::ostream& output, log_level l 
 //____________________________________________________________________________//
 
 void
-compiler_log_formatter::log_entry_context( std::ostream& output, log_level /*l*/, const_string context_descr )
+compiler_log_formatter::log_entry_context( std::ostream& output, log_level l, const_string context_descr )
 {
     output << "\n    " << context_descr;
 }

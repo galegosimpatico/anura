@@ -10,7 +10,7 @@
 #pragma once
 #endif
 
-#include <boost/proto/traits.hpp>
+#include <boost/proto/core.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 namespace boost { namespace spirit { namespace qi

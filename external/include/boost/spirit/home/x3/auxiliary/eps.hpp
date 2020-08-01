@@ -20,7 +20,7 @@ namespace boost { namespace spirit { namespace x3
         typedef unused_type attribute_type;
         static bool const has_attribute = false;
 
-        constexpr semantic_predicate(bool predicate)
+        semantic_predicate(bool predicate)
           : predicate(predicate) {}
 
         template <typename Iterator, typename Context, typename Attribute>
@@ -40,7 +40,7 @@ namespace boost { namespace spirit { namespace x3
         typedef unused_type attribute_type;
         static bool const has_attribute = false;
 
-        constexpr lazy_semantic_predicate(F f)
+        lazy_semantic_predicate(F f)
           : f(f) {}
 
         template <typename Iterator, typename Context, typename Attribute>
@@ -68,19 +68,19 @@ namespace boost { namespace spirit { namespace x3
             return true;
         }
 
-        constexpr semantic_predicate operator()(bool predicate) const
+        inline semantic_predicate operator()(bool predicate) const
         {
             return { predicate };
         }
 
         template <typename F>
-        constexpr lazy_semantic_predicate<F> operator()(F f) const
+        lazy_semantic_predicate<F> operator()(F f) const
         {
             return { f };
         }
     };
 
-    constexpr auto eps = eps_parser{};
+    auto const eps = eps_parser{};
 }}}
 
 #endif

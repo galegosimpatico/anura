@@ -437,8 +437,7 @@ struct BaseRegexConcept
       ignore_unused_variable_warning(bi);
       sub_diff_type diff = m_sub.length();
       ignore_unused_variable_warning(diff);
-      // match_results tests - some typedefs are not used, however these
-      // guarante that they exist (some compilers may warn on non-usage)
+      // match_results tests:
       typedef typename match_results_type::value_type mr_value_type;
       typedef typename match_results_type::const_reference mr_const_reference;
       typedef typename match_results_type::reference mr_reference;
@@ -484,7 +483,7 @@ struct BaseRegexConcept
       mrci = m_cresults.end();
       ignore_unused_variable_warning(mrci);
 
-      (void) m_cresults.get_allocator();
+      mr_allocator_type at2 = m_cresults.get_allocator();
       m_results.swap(m_results);
       global_regex_namespace::swap(m_results, m_results);
 

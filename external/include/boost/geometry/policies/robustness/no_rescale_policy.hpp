@@ -17,6 +17,7 @@
 #include <boost/geometry/core/coordinate_type.hpp>
 #include <boost/geometry/policies/robustness/robust_point_type.hpp>
 #include <boost/geometry/policies/robustness/segment_ratio.hpp>
+#include <boost/geometry/policies/robustness/segment_ratio_type.hpp>
 
 namespace boost { namespace geometry
 {
@@ -25,7 +26,7 @@ namespace boost { namespace geometry
 namespace detail
 {
 
-// Redudant later.
+// Probably this will be moved out of namespace detail
 struct no_rescale_policy
 {
     static bool const enabled = false;
@@ -49,6 +50,16 @@ struct robust_point_type<Point, detail::no_rescale_policy>
     // The point itself
     typedef Point type;
 };
+
+template <typename Point>
+struct segment_ratio_type<Point, detail::no_rescale_policy>
+{
+    // Define a segment_ratio defined on coordinate type, e.g.
+    // int/int or float/float
+    typedef typename geometry::coordinate_type<Point>::type coordinate_type;
+    typedef segment_ratio<coordinate_type> type;
+};
+
 
 }} // namespace boost::geometry
 

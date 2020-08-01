@@ -2,8 +2,8 @@
 
 // Copyright (c) 2007-2012 Barend Gehrels, Amsterdam, the Netherlands.
 
-// This file was modified by Oracle on 2013, 2014, 2017, 2018.
-// Modifications copyright (c) 2013-2018, Oracle and/or its affiliates.
+// This file was modified by Oracle on 2013, 2014, 2017.
+// Modifications copyright (c) 2013-2017, Oracle and/or its affiliates.
 
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
@@ -21,9 +21,8 @@
 
 #include <boost/geometry/algorithms/detail/equals/point_point.hpp>
 #include <boost/geometry/algorithms/detail/within/point_in_geometry.hpp>
+#include <boost/geometry/algorithms/detail/relate/less.hpp>
 #include <boost/geometry/algorithms/detail/relate/result.hpp>
-
-#include <boost/geometry/policies/compare.hpp>
 
 namespace boost { namespace geometry
 {
@@ -39,9 +38,9 @@ struct point_point
     template <typename Result, typename Strategy>
     static inline void apply(Point1 const& point1, Point2 const& point2,
                              Result & result,
-                             Strategy const& strategy)
+                             Strategy const& /*strategy*/)
     {
-        bool equal = detail::equals::equals_point_point(point1, point2, strategy);
+        bool equal = detail::equals::equals_point_point(point1, point2);
         if ( equal )
         {
             relate::set<interior, interior, '0'>(result);
@@ -56,10 +55,8 @@ struct point_point
     }
 };
 
-template <typename Point, typename MultiPoint, typename EqPPStrategy>
-std::pair<bool, bool> point_multipoint_check(Point const& point,
-                                             MultiPoint const& multi_point,
-                                             EqPPStrategy const& strategy)
+template <typename Point, typename MultiPoint>
+std::pair<bool, bool> point_multipoint_check(Point const& point, MultiPoint const& multi_point)
 {
     bool found_inside = false;
     bool found_outside = false;
@@ -72,7 +69,7 @@ std::pair<bool, bool> point_multipoint_check(Point const& point,
     iterator last = boost::end(multi_point);
     for ( ; it != last ; ++it )
     {
-        bool ii = detail::equals::equals_point_point(point, *it, strategy);
+        bool ii = detail::equals::equals_point_point(point, *it);
 
         if ( ii )
             found_inside = true;
@@ -94,7 +91,7 @@ struct point_multipoint
     template <typename Result, typename Strategy>
     static inline void apply(Point const& point, MultiPoint const& multi_point,
                              Result & result,
-                             Strategy const& strategy)
+                             Strategy const& /*strategy*/)
     {
         if ( boost::empty(multi_point) )
         {
@@ -103,7 +100,7 @@ struct point_multipoint
             return;
         }
 
-        std::pair<bool, bool> rel = point_multipoint_check(point, multi_point, strategy);
+        std::pair<bool, bool> rel = point_multipoint_check(point, multi_point);
 
         if ( rel.first ) // some point of MP is equal to P
         {
@@ -148,8 +145,6 @@ struct multipoint_multipoint
                              Result & result,
                              Strategy const& /*strategy*/)
     {
-        typedef typename Strategy::cs_tag cs_tag;
-
         {
             // TODO: throw on empty input?
             bool empty1 = boost::empty(multi_point1);
@@ -173,17 +168,17 @@ struct multipoint_multipoint
         // The geometry containing smaller number of points will be analysed first
         if ( boost::size(multi_point1) < boost::size(multi_point2) )
         {
-            search_both<false, cs_tag>(multi_point1, multi_point2, result);
+            search_both<false>(multi_point1, multi_point2, result);
         }
         else
         {
-            search_both<true, cs_tag>(multi_point2, multi_point1, result);
+            search_both<true>(multi_point2, multi_point1, result);
         }
 
         relate::set<exterior, exterior, result_dimension<MultiPoint1>::value>(result);
     }
 
-    template <bool Transpose, typename CSTag, typename MPt1, typename MPt2, typename Result>
+    template <bool Transpose, typename MPt1, typename MPt2, typename Result>
     static inline void search_both(MPt1 const& first_sorted_mpt, MPt2 const& first_iterated_mpt,
                                    Result & result)
     {
@@ -192,7 +187,7 @@ struct multipoint_multipoint
           || relate::may_update<exterior, interior, '0'>(result) )
         {
             // NlogN + MlogN
-            bool is_disjoint = search<Transpose, CSTag>(first_sorted_mpt, first_iterated_mpt, result);
+            bool is_disjoint = search<Transpose>(first_sorted_mpt, first_iterated_mpt, result);
 
             if ( BOOST_GEOMETRY_CONDITION(is_disjoint || result.interrupt) )
                 return;
@@ -203,12 +198,11 @@ struct multipoint_multipoint
           || relate::may_update<exterior, interior, '0'>(result) )
         {
             // MlogM + NlogM
-            search<! Transpose, CSTag>(first_iterated_mpt, first_sorted_mpt, result);
+            search<! Transpose>(first_iterated_mpt, first_sorted_mpt, result);
         }
     }
 
     template <bool Transpose,
-              typename CSTag,
               typename SortedMultiPoint,
               typename IteratedMultiPoint,
               typename Result>
@@ -218,12 +212,8 @@ struct multipoint_multipoint
     {
         // sort points from the 1 MPt
         typedef typename geometry::point_type<SortedMultiPoint>::type point_type;
-        typedef geometry::less<void, -1, CSTag> less_type;
-
         std::vector<point_type> points(boost::begin(sorted_mpt), boost::end(sorted_mpt));
-
-        less_type const less = less_type();
-        std::sort(points.begin(), points.end(), less);
+        std::sort(points.begin(), points.end(), less());
 
         bool found_inside = false;
         bool found_outside = false;
@@ -234,7 +224,7 @@ struct multipoint_multipoint
               it != boost::end(iterated_mpt) ; ++it )
         {
             bool ii =
-                std::binary_search(points.begin(), points.end(), *it, less);
+                std::binary_search(points.begin(), points.end(), *it, less());
             if ( ii )
                 found_inside = true;
             else

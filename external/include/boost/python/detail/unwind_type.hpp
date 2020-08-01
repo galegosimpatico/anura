@@ -11,15 +11,13 @@
 
 namespace boost { namespace python { namespace detail {
 
-#if (!defined(_MSC_VER) || _MSC_VER >= 1915)
-// If forward declared, msvc6.5 does not recognize them as inline.
-// However, as of msvc14.15 (_MSC_VER 1915/Visual Studio 15.8.0) name lookup is now consistent with other compilers.
-// forward declaration, required (at least) by Tru64 cxx V6.5-042 and msvc14.15
+#ifndef _MSC_VER //if forward declared, msvc6.5 does not recognize them as inline
+// forward declaration, required (at least) by Tru64 cxx V6.5-042
 template <class Generator, class U>
 inline typename Generator::result_type
 unwind_type(U const& p, Generator* = 0);
 
-// forward declaration, required (at least) by Tru64 cxx V6.5-042 and msvc14.15
+// forward declaration, required (at least) by Tru64 cxx V6.5-042
 template <class Generator, class U>
 inline typename Generator::result_type
 unwind_type(boost::type<U>*p = 0, Generator* = 0);
@@ -85,7 +83,7 @@ struct unwind_helper<false>
 
 template <class Generator, class U>
 inline typename Generator::result_type
-#if (!defined(_MSC_VER) || _MSC_VER >= 1915)
+#ifndef _MSC_VER
 unwind_type(U const& p, Generator*)
 #else
 unwind_type(U const& p, Generator* = 0)
@@ -150,7 +148,7 @@ struct unwind_helper2<reference_to_pointer_>
 // why bother?
 template <class Generator, class U>
 inline typename Generator::result_type
-#if (!defined(_MSC_VER) || _MSC_VER >= 1915)
+#ifndef _MSC_VER
 unwind_type(boost::type<U>*, Generator*)
 #else
 unwind_type(boost::type<U>*p =0, Generator* =0)

@@ -4,10 +4,6 @@
 //
 // Copyright (c) 2011-2017 Adam Wulkiewicz, Lodz, Poland.
 //
-// This file was modified by Oracle on 2019.
-// Modifications copyright (c) 2019 Oracle and/or its affiliates.
-// Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
-//
 // Use, modification and distribution is subject to the Boost Software License,
 // Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -15,7 +11,6 @@
 #ifndef BOOST_GEOMETRY_INDEX_DETAIL_RTREE_VISITORS_REMOVE_HPP
 #define BOOST_GEOMETRY_INDEX_DETAIL_RTREE_VISITORS_REMOVE_HPP
 
-#include <boost/geometry/index/detail/rtree/visitors/destroy.hpp>
 #include <boost/geometry/index/detail/rtree/visitors/is_leaf.hpp>
 
 #include <boost/geometry/algorithms/detail/covered_by/interface.hpp>
@@ -25,23 +20,19 @@ namespace boost { namespace geometry { namespace index {
 namespace detail { namespace rtree { namespace visitors {
 
 // Default remove algorithm
-template <typename MembersHolder>
+template <typename Value, typename Options, typename Translator, typename Box, typename Allocators>
 class remove
-    : public MembersHolder::visitor
+    : public rtree::visitor<Value, typename Options::parameters_type, Box, Allocators, typename Options::node_tag, false>::type
 {
-    typedef typename MembersHolder::box_type box_type;
-    typedef typename MembersHolder::value_type value_type;
-    typedef typename MembersHolder::parameters_type parameters_type;
-    typedef typename MembersHolder::translator_type translator_type;
-    typedef typename MembersHolder::allocators_type allocators_type;
+    typedef typename Options::parameters_type parameters_type;
 
-    typedef typename MembersHolder::node node;
-    typedef typename MembersHolder::internal_node internal_node;
-    typedef typename MembersHolder::leaf leaf;
+    typedef typename rtree::node<Value, parameters_type, Box, Allocators, typename Options::node_tag>::type node;
+    typedef typename rtree::internal_node<Value, parameters_type, Box, Allocators, typename Options::node_tag>::type internal_node;
+    typedef typename rtree::leaf<Value, parameters_type, Box, Allocators, typename Options::node_tag>::type leaf;
 
-    typedef rtree::subtree_destroyer<MembersHolder> subtree_destroyer;
-    typedef typename allocators_type::node_pointer node_pointer;
-    typedef typename allocators_type::size_type size_type;
+    typedef rtree::subtree_destroyer<Value, Options, Translator, Box, Allocators> subtree_destroyer;
+    typedef typename Allocators::node_pointer node_pointer;
+    typedef typename Allocators::size_type size_type;
 
     typedef typename rtree::elements_type<internal_node>::type::size_type internal_size_type;
 
@@ -51,10 +42,10 @@ class remove
 public:
     inline remove(node_pointer & root,
                   size_type & leafs_level,
-                  value_type const& value,
+                  Value const& value,
                   parameters_type const& parameters,
-                  translator_type const& translator,
-                  allocators_type & allocators)
+                  Translator const& translator,
+                  Allocators & allocators)
         : m_value(value)
         , m_parameters(parameters)
         , m_translator(translator)
@@ -80,9 +71,9 @@ public:
         internal_size_type child_node_index = 0;
         for ( ; child_node_index < children.size() ; ++child_node_index )
         {
-            if ( index::detail::covered_by_bounds(m_translator(m_value),
-                                                  children[child_node_index].first,
-                                                  index::detail::get_strategy(m_parameters)) )
+            if ( geometry::covered_by(
+                    return_ref_or_bounds(m_translator(m_value)),
+                    children[child_node_index].first) )
             {
                 // next traversing step
                 traverse_apply_visitor(n, child_node_index);                                                            // MAY THROW
@@ -121,8 +112,7 @@ public:
                 BOOST_GEOMETRY_INDEX_ASSERT((elements.size() < m_parameters.get_min_elements()) == m_is_underflow, "unexpected state");
 
                 rtree::elements(*m_parent)[m_current_child_index].first
-                    = rtree::elements_box<box_type>(elements.begin(), elements.end(), m_translator,
-                                                    index::detail::get_strategy(m_parameters));
+                    = rtree::elements_box<Box>(elements.begin(), elements.end(), m_translator);
             }
             // n is root node
             else
@@ -145,7 +135,7 @@ public:
                         m_root_node = rtree::elements(n)[0].second;
                     --m_leafs_level;
 
-                    rtree::destroy_node<allocators_type, internal_node>::apply(m_allocators, root_to_destroy);
+                    rtree::destroy_node<Allocators, internal_node>::apply(m_allocators, root_to_destroy);
                 }
             }
         }
@@ -155,11 +145,11 @@ public:
     {
         typedef typename rtree::elements_type<leaf>::type elements_type;
         elements_type & elements = rtree::elements(n);
-        
+
         // find value and remove it
         for ( typename elements_type::iterator it = elements.begin() ; it != elements.end() ; ++it )
         {
-            if ( m_translator.equals(*it, m_value, index::detail::get_strategy(m_parameters)) )
+            if ( m_translator.equals(*it, m_value) )
             {
                 rtree::move_from_back(elements, it);                                                           // MAY THROW (V: copy)
                 elements.pop_back();
@@ -180,8 +170,7 @@ public:
             if ( 0 != m_parent )
             {
                 rtree::elements(*m_parent)[m_current_child_index].first
-                    = rtree::values_box<box_type>(elements.begin(), elements.end(), m_translator,
-                                                  index::detail::get_strategy(m_parameters));
+                    = rtree::values_box<Box>(elements.begin(), elements.end(), m_translator);
             }
         }
     }
@@ -193,7 +182,7 @@ public:
 
 private:
 
-    typedef std::vector< std::pair<size_type, node_pointer> > underflow_nodes;
+    typedef std::vector< std::pair<size_type, node_pointer> > UnderflowNodes;
 
     void traverse_apply_visitor(internal_node &n, internal_size_type choosen_node_index)
     {
@@ -244,14 +233,14 @@ private:
 
     static inline bool is_leaf(node const& n)
     {
-        visitors::is_leaf<MembersHolder> ilv;
+        visitors::is_leaf<Value, Options, Box, Allocators> ilv;
         rtree::apply_visitor(ilv, n);
         return ilv.result;
     }
 
     void reinsert_removed_nodes_elements()
     {
-        typename underflow_nodes::reverse_iterator it = m_underflowed_nodes.rbegin();
+        typename UnderflowNodes::reverse_iterator it = m_underflowed_nodes.rbegin();
 
         BOOST_TRY
         {
@@ -267,13 +256,13 @@ private:
                 {
                     reinsert_node_elements(rtree::get<leaf>(*it->second), it->first);                        // MAY THROW (V, E: alloc, copy, N: alloc)
 
-                    rtree::destroy_node<allocators_type, leaf>::apply(m_allocators, it->second);
+                    rtree::destroy_node<Allocators, leaf>::apply(m_allocators, it->second);
                 }
                 else
                 {
                     reinsert_node_elements(rtree::get<internal_node>(*it->second), it->first);               // MAY THROW (V, E: alloc, copy, N: alloc)
 
-                    rtree::destroy_node<allocators_type, internal_node>::apply(m_allocators, it->second);
+                    rtree::destroy_node<Allocators, internal_node>::apply(m_allocators, it->second);
                 }
             }
 
@@ -284,7 +273,7 @@ private:
             // destroy current and remaining nodes
             for ( ; it != m_underflowed_nodes.rend() ; ++it )
             {
-                rtree::visitors::destroy<MembersHolder>::apply(it->second, m_allocators);
+                subtree_destroyer dummy(it->second, m_allocators);
             }
 
             //m_underflowed_nodes.clear();
@@ -305,10 +294,14 @@ private:
         {
             for ( ; it != elements.end() ; ++it )
             {
-                visitors::insert<typename elements_type::value_type, MembersHolder>
-                    insert_v(m_root_node, m_leafs_level, *it,
-                             m_parameters, m_translator, m_allocators,
-                             node_relative_level - 1);
+                visitors::insert<
+                    typename elements_type::value_type,
+                    Value, Options, Translator, Box, Allocators,
+                    typename Options::insert_tag
+                > insert_v(
+                    m_root_node, m_leafs_level, *it,
+                    m_parameters, m_translator, m_allocators,
+                    node_relative_level - 1);
 
                 rtree::apply_visitor(insert_v, *m_root_node);                                               // MAY THROW (V, E: alloc, copy, N: alloc)
             }
@@ -316,23 +309,24 @@ private:
         BOOST_CATCH(...)
         {
             ++it;
-            rtree::destroy_elements<MembersHolder>::apply(it, elements.end(), m_allocators);
+            rtree::destroy_elements<Value, Options, Translator, Box, Allocators>
+                ::apply(it, elements.end(), m_allocators);
             elements.clear();
             BOOST_RETHROW                                                                                     // RETHROW
         }
         BOOST_CATCH_END
     }
 
-    value_type const& m_value;
+    Value const& m_value;
     parameters_type const& m_parameters;
-    translator_type const& m_translator;
-    allocators_type & m_allocators;
+    Translator const& m_translator;
+    Allocators & m_allocators;
 
     node_pointer & m_root_node;
     size_type & m_leafs_level;
 
     bool m_is_value_removed;
-    underflow_nodes m_underflowed_nodes;
+    UnderflowNodes m_underflowed_nodes;
 
     // traversing input parameters
     internal_node_pointer m_parent;

@@ -1,4 +1,4 @@
-// // boost heap: d-ary heap as container adaptor
+// // boost heap: d-ary heap as containter adaptor
 //
 // Copyright (C) 2010 Tim Blechmann
 //
@@ -66,11 +66,7 @@ class d_ary_heap:
     typedef typename heap_base_maker::type super_t;
     typedef typename super_t::internal_type internal_type;
 
-#ifdef BOOST_NO_CXX11_ALLOCATOR
     typedef typename heap_base_maker::allocator_argument::template rebind<internal_type>::other internal_type_allocator;
-#else
-    typedef typename std::allocator_traits<typename heap_base_maker::allocator_argument>::template rebind_alloc<internal_type> internal_type_allocator;
-#endif
     typedef std::vector<internal_type, internal_type_allocator> container_type;
     typedef typename container_type::const_iterator container_iterator;
 
@@ -425,7 +421,7 @@ struct select_dary_heap
 {
     static const bool is_mutable = extract_mutable<BoundArgs>::value;
 
-    typedef typename boost::conditional< is_mutable,
+    typedef typename mpl::if_c< is_mutable,
                                 priority_queue_mutable_wrapper<d_ary_heap<T, BoundArgs, nop_index_updater > >,
                                 d_ary_heap<T, BoundArgs, nop_index_updater >
                               >::type type;
@@ -589,7 +585,7 @@ public:
     }
 
     /// \copydoc boost::heap::priority_queue::push
-    typename boost::conditional<is_mutable, handle_type, void>::type push(value_type const & v)
+    typename mpl::if_c<is_mutable, handle_type, void>::type push(value_type const & v)
     {
         return super_t::push(v);
     }
@@ -597,7 +593,7 @@ public:
 #if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES) && !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
     /// \copydoc boost::heap::priority_queue::emplace
     template <class... Args>
-    typename boost::conditional<is_mutable, handle_type, void>::type emplace(Args&&... args)
+    typename mpl::if_c<is_mutable, handle_type, void>::type emplace(Args&&... args)
     {
         return super_t::emplace(std::forward<Args>(args)...);
     }

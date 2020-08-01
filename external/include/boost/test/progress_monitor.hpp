@@ -14,6 +14,7 @@
 
 // Boost.Test
 #include <boost/test/tree/observer.hpp>
+#include <boost/test/utils/trivial_singleton.hpp>
 
 // STL
 #include <iosfwd>   // for std::ostream&
@@ -30,11 +31,11 @@ namespace unit_test {
 // ************************************************************************** //
 
 /// This class implements test observer interface and updates test progress as test units finish or get aborted
-class BOOST_TEST_DECL progress_monitor_t : public test_observer {
+class BOOST_TEST_DECL progress_monitor_t : public test_observer, public singleton<progress_monitor_t> {
 public:
     /// @name Test observer interface
     /// @{
-    virtual void    test_start( counter_t test_cases_amount, test_unit_id );
+    virtual void    test_start( counter_t test_cases_amount );
     virtual void    test_aborted();
 
     virtual void    test_unit_finish( test_unit const&, unsigned long );
@@ -48,7 +49,7 @@ public:
     void            set_stream( std::ostream& );
     /// @}
 
-    /// Singleton pattern
+private:
     BOOST_TEST_SINGLETON_CONS( progress_monitor_t )
 }; // progress_monitor_t
 

@@ -4,8 +4,8 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_SPIRIT_KARMA_OPERATOR_AND_PREDICATE_HPP
-#define BOOST_SPIRIT_KARMA_OPERATOR_AND_PREDICATE_HPP
+#if !defined(SPIRIT_KARMA_AND_PREDICATE_MAR_22_2009_0412PM)
+#define SPIRIT_KARMA_AND_PREDICATE_MAR_22_2009_0412PM
 
 #if defined(_MSC_VER)
 #pragma once
@@ -19,8 +19,6 @@
 #include <boost/spirit/home/support/info.hpp>
 #include <boost/spirit/home/support/has_semantic_action.hpp>
 #include <boost/spirit/home/support/handles_container.hpp>
-#include <boost/proto/operators.hpp>
-#include <boost/proto/tags.hpp>
 
 namespace boost { namespace spirit
 {

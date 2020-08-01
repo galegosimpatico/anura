@@ -75,11 +75,7 @@ BOOST_HANA_NAMESPACE_BEGIN
     // tuple
     //////////////////////////////////////////////////////////////////////////
     template <>
-#ifdef BOOST_HANA_WORKAROUND_MSVC_EMPTYBASE
-    struct __declspec(empty_bases) tuple<> final
-#else
-    struct tuple<> final
-#endif
+    struct tuple<>
         : detail::operators::adl<tuple<>>
         , detail::iterable_operators<tuple<>>
     {
@@ -88,11 +84,7 @@ BOOST_HANA_NAMESPACE_BEGIN
     };
 
     template <typename ...Xn>
-#ifdef BOOST_HANA_WORKAROUND_MSVC_EMPTYBASE
-    struct __declspec(empty_bases) tuple final
-#else
-    struct tuple final
-#endif
+    struct tuple
         : detail::operators::adl<tuple<Xn...>>
         , detail::iterable_operators<tuple<Xn...>>
     {
@@ -264,7 +256,7 @@ BOOST_HANA_NAMESPACE_BEGIN
         static constexpr auto apply(Xs&& xs, N const&) {
             constexpr std::size_t len = decltype(hana::length(xs))::value;
             return helper<N::value>(static_cast<Xs&&>(xs), std::make_index_sequence<
-                (N::value < len) ? len - N::value : 0
+                N::value < len ? len - N::value : 0
             >{});
         }
     };

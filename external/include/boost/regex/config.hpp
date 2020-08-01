@@ -113,17 +113,6 @@
 #if defined(__MINGW32__)
 #  define BOOST_REGEX_NO_EXTERNAL_TEMPLATES
 #endif
-/*
- * Clang fails to export template instances with -fvisibility=hidden, see
- * https://github.com/boostorg/regex/issues/49
- */
-#ifdef __clang__
-#  define BOOST_REGEX_NO_EXTERNAL_TEMPLATES
-#endif
-#ifdef __CYGWIN__
-/* We get multiply defined symbols without this: */
-#  define BOOST_REGEX_NO_EXTERNAL_TEMPLATES
-#endif
 
 /*
  * If there isn't good enough wide character support then there will
@@ -174,7 +163,7 @@
 #  define BOOST_REGEX_NO_LIB
 #endif
 
-#if defined(__GNUC__) && !defined(_MSC_VER) && (defined(_WIN32) || defined(__CYGWIN__))
+#if defined(__GNUC__) && (defined(_WIN32) || defined(__CYGWIN__))
 /* gcc on win32 has problems if you include <windows.h>
    (sporadically generates bad code). */
 #  define BOOST_REGEX_NO_W32
@@ -212,10 +201,7 @@
 #  define BOOST_REGEX_HAS_OTHER_WCHAR_T
 #  ifdef BOOST_MSVC
 #     pragma warning(push)
-#     pragma warning(disable : 4251)
-#if BOOST_MSVC < 1700
-#     pragma warning(disable : 4231)
-#endif
+#     pragma warning(disable : 4251 4231)
 #     if BOOST_MSVC < 1600
 #        pragma warning(disable : 4660)
 #     endif

@@ -522,46 +522,46 @@ class bs_set
    //Assert if passed value traits are compatible with the type
    BOOST_STATIC_ASSERT((detail::is_same<typename value_traits::value_type, T>::value));
 
-   BOOST_INTRUSIVE_FORCEINLINE bs_set()
+   bs_set()
       :  Base()
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE explicit bs_set( const key_compare &cmp, const value_traits &v_traits = value_traits())
+   explicit bs_set( const key_compare &cmp, const value_traits &v_traits = value_traits())
       :  Base(cmp, v_traits)
    {}
 
    template<class Iterator>
-   BOOST_INTRUSIVE_FORCEINLINE bs_set( Iterator b, Iterator e
+   bs_set( Iterator b, Iterator e
       , const key_compare &cmp = key_compare()
       , const value_traits &v_traits = value_traits())
       :  Base(b, e, cmp, v_traits)
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE bs_set(BOOST_RV_REF(bs_set) x)
+   bs_set(BOOST_RV_REF(bs_set) x)
       :  Base(BOOST_MOVE_BASE(Base, x))
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE bs_set& operator=(BOOST_RV_REF(bs_set) x)
+   bs_set& operator=(BOOST_RV_REF(bs_set) x)
    {  return static_cast<bs_set &>(this->Base::operator=(BOOST_MOVE_BASE(Base, x)));  }
 
    template <class Cloner, class Disposer>
-   BOOST_INTRUSIVE_FORCEINLINE void clone_from(const bs_set &src, Cloner cloner, Disposer disposer)
+   void clone_from(const bs_set &src, Cloner cloner, Disposer disposer)
    {  Base::clone_from(src, cloner, disposer);  }
 
    template <class Cloner, class Disposer>
-   BOOST_INTRUSIVE_FORCEINLINE void clone_from(BOOST_RV_REF(bs_set) src, Cloner cloner, Disposer disposer)
+   void clone_from(BOOST_RV_REF(bs_set) src, Cloner cloner, Disposer disposer)
    {  Base::clone_from(BOOST_MOVE_BASE(Base, src), cloner, disposer);  }
 
-   BOOST_INTRUSIVE_FORCEINLINE static bs_set &container_from_end_iterator(iterator end_iterator)
+   static bs_set &container_from_end_iterator(iterator end_iterator)
    {  return static_cast<bs_set &>(Base::container_from_end_iterator(end_iterator));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static const bs_set &container_from_end_iterator(const_iterator end_iterator)
+   static const bs_set &container_from_end_iterator(const_iterator end_iterator)
    {  return static_cast<const bs_set &>(Base::container_from_end_iterator(end_iterator));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static bs_set &container_from_iterator(iterator it)
+   static bs_set &container_from_iterator(iterator it)
    {  return static_cast<bs_set &>(Base::container_from_iterator(it));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static const bs_set &container_from_iterator(const_iterator it)
+   static const bs_set &container_from_iterator(const_iterator it)
    {  return static_cast<const bs_set &>(Base::container_from_iterator(it));   }
 };
 
@@ -1016,46 +1016,46 @@ class bs_multiset
    //Assert if passed value traits are compatible with the type
    BOOST_STATIC_ASSERT((detail::is_same<typename value_traits::value_type, T>::value));
 
-   BOOST_INTRUSIVE_FORCEINLINE bs_multiset()
+   bs_multiset()
       :  Base()
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE explicit bs_multiset( const key_compare &cmp, const value_traits &v_traits = value_traits())
+   explicit bs_multiset( const key_compare &cmp, const value_traits &v_traits = value_traits())
       :  Base(cmp, v_traits)
    {}
 
    template<class Iterator>
-   BOOST_INTRUSIVE_FORCEINLINE bs_multiset( Iterator b, Iterator e
+   bs_multiset( Iterator b, Iterator e
            , const key_compare &cmp = key_compare()
            , const value_traits &v_traits = value_traits())
       :  Base(b, e, cmp, v_traits)
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE bs_multiset(BOOST_RV_REF(bs_multiset) x)
+   bs_multiset(BOOST_RV_REF(bs_multiset) x)
       :  Base(BOOST_MOVE_BASE(Base, x))
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE bs_multiset& operator=(BOOST_RV_REF(bs_multiset) x)
+   bs_multiset& operator=(BOOST_RV_REF(bs_multiset) x)
    {  return static_cast<bs_multiset &>(this->Base::operator=(BOOST_MOVE_BASE(Base, x)));  }
 
    template <class Cloner, class Disposer>
-   BOOST_INTRUSIVE_FORCEINLINE void clone_from(const bs_multiset &src, Cloner cloner, Disposer disposer)
+   void clone_from(const bs_multiset &src, Cloner cloner, Disposer disposer)
    {  Base::clone_from(src, cloner, disposer);  }
 
    template <class Cloner, class Disposer>
-   BOOST_INTRUSIVE_FORCEINLINE void clone_from(BOOST_RV_REF(bs_multiset) src, Cloner cloner, Disposer disposer)
+   void clone_from(BOOST_RV_REF(bs_multiset) src, Cloner cloner, Disposer disposer)
    {  Base::clone_from(BOOST_MOVE_BASE(Base, src), cloner, disposer);  }
 
-   BOOST_INTRUSIVE_FORCEINLINE static bs_multiset &container_from_end_iterator(iterator end_iterator)
+   static bs_multiset &container_from_end_iterator(iterator end_iterator)
    {  return static_cast<bs_multiset &>(Base::container_from_end_iterator(end_iterator));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static const bs_multiset &container_from_end_iterator(const_iterator end_iterator)
+   static const bs_multiset &container_from_end_iterator(const_iterator end_iterator)
    {  return static_cast<const bs_multiset &>(Base::container_from_end_iterator(end_iterator));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static bs_multiset &container_from_iterator(iterator it)
+   static bs_multiset &container_from_iterator(iterator it)
    {  return static_cast<bs_multiset &>(Base::container_from_iterator(it));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static const bs_multiset &container_from_iterator(const_iterator it)
+   static const bs_multiset &container_from_iterator(const_iterator it)
    {  return static_cast<const bs_multiset &>(Base::container_from_iterator(it));   }
 };
 

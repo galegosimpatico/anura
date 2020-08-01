@@ -20,7 +20,7 @@
 
 /// Generates the macro metafunction name for BOOST_TTI_HAS_DATA.
 /**
-    name  = the name of the data.
+    name  = the name of the member data.
 
     returns = the generated macro metafunction name.
 */

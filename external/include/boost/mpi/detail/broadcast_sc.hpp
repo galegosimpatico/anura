@@ -14,6 +14,14 @@
 namespace boost { namespace mpi {
 
 template<typename T>
+inline void
+broadcast(const communicator& comm, skeleton_proxy<T>& proxy, int root)
+{
+  const skeleton_proxy<T>& const_proxy(proxy);
+  broadcast(comm, const_proxy, root);
+}
+
+template<typename T>
 void
 broadcast(const communicator& comm, const skeleton_proxy<T>& proxy, int root)
 {
@@ -27,15 +35,6 @@ broadcast(const communicator& comm, const skeleton_proxy<T>& proxy, int root)
     ia >> proxy.object;
   }
 }
-
-template<typename T>
-inline void
-broadcast(const communicator& comm, skeleton_proxy<T>& proxy, int root)
-{
-  const skeleton_proxy<T>& const_proxy(proxy);
-  broadcast(comm, const_proxy, root);
-}
-
 
 } } // end namespace boost::mpi
 

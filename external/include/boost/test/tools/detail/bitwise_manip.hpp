@@ -34,18 +34,12 @@ namespace test_tools {
 // ************************************************************************** //
 
 //! Bitwise comparison manipulator
-//! This is a terminal for the expression
 struct bitwise {};
 
 //____________________________________________________________________________//
 
-inline unit_test::lazy_ostream &
-operator<<( unit_test::lazy_ostream &o, bitwise )   { return o; }
-
-// needed for the lazy evaluation in lazy_ostream as bitwise is a terminal
-inline std::ostream& 
-operator<<( std::ostream& o, bitwise )              { return o; }
-
+inline int
+operator<<( unit_test::lazy_ostream const&, bitwise )   { return 0; }
 
 //____________________________________________________________________________//
 
@@ -112,10 +106,10 @@ operator<<(assertion_evaluate_t<assertion::binary_expr<T1,T2,assertion::op::EQ<T
 
 //____________________________________________________________________________//
 
-inline assertion_type
+inline check_type
 operator<<( assertion_type const& , bitwise )
 {
-    return assertion_type(CHECK_BUILT_ASSERTION);
+    return CHECK_BUILT_ASSERTION;
 }
 
 //____________________________________________________________________________//

@@ -18,16 +18,6 @@
 #include <boost/math/policies/error_handling.hpp>
 #include <boost/assert.hpp>
 
-#if defined(__GNUC__) && defined(BOOST_MATH_USE_FLOAT128)
-//
-// This is the only way we can avoid
-// warning: non-standard suffix on floating constant [-Wpedantic]
-// when building with -Wall -pedantic.  Neither __extension__
-// nor #pragma diagnostic ignored work :(
-//
-#pragma GCC system_header
-#endif
-
 // Modified Bessel function of the second kind of order zero
 // minimax rational approximations on intervals, see
 // Russon and Blair, Chalk River Report AECL-3461, 1969,
@@ -55,13 +45,13 @@ namespace boost { namespace math { namespace detail{
          {
             do_init(tag());
          }
-         static void do_init(const boost::integral_constant<int, 113>&)
+         static void do_init(const mpl::int_<113>&)
          {
             bessel_k1(T(0.5));
             bessel_k1(T(2));
             bessel_k1(T(6));
          }
-         static void do_init(const boost::integral_constant<int, 64>&)
+         static void do_init(const mpl::int_<64>&)
          {
             bessel_k1(T(0.5));
             bessel_k1(T(6));
@@ -82,14 +72,14 @@ namespace boost { namespace math { namespace detail{
 
 
    template <typename T, int N>
-   inline T bessel_k1_imp(const T& x, const boost::integral_constant<int, N>&)
+   inline T bessel_k1_imp(const T& x, const mpl::int_<N>&)
    {
       BOOST_ASSERT(0);
       return 0;
    }
 
    template <typename T>
-   T bessel_k1_imp(const T& x, const boost::integral_constant<int, 24>&)
+   T bessel_k1_imp(const T& x, const mpl::int_<24>&)
    {
       BOOST_MATH_STD_USING
       if(x <= 1)
@@ -160,7 +150,7 @@ namespace boost { namespace math { namespace detail{
    }
 
    template <typename T>
-   T bessel_k1_imp(const T& x, const boost::integral_constant<int, 53>&)
+   T bessel_k1_imp(const T& x, const mpl::int_<53>&)
    {
       BOOST_MATH_STD_USING
       if(x <= 1)
@@ -253,7 +243,7 @@ namespace boost { namespace math { namespace detail{
    }
 
    template <typename T>
-   T bessel_k1_imp(const T& x, const boost::integral_constant<int, 64>&)
+   T bessel_k1_imp(const T& x, const mpl::int_<64>&)
    {
       BOOST_MATH_STD_USING
       if(x <= 1)
@@ -353,7 +343,7 @@ namespace boost { namespace math { namespace detail{
    }
 
    template <typename T>
-   T bessel_k1_imp(const T& x, const boost::integral_constant<int, 113>&)
+   T bessel_k1_imp(const T& x, const mpl::int_<113>&)
    {
       BOOST_MATH_STD_USING
       if(x <= 1)
@@ -517,16 +507,16 @@ namespace boost { namespace math { namespace detail{
     }
 
     template <typename T>
-    T bessel_k1_imp(const T& x, const boost::integral_constant<int, 0>&)
+    T bessel_k1_imp(const T& x, const mpl::int_<0>&)
     {
        if(boost::math::tools::digits<T>() <= 24)
-          return bessel_k1_imp(x, boost::integral_constant<int, 24>());
+          return bessel_k1_imp(x, mpl::int_<24>());
        else if(boost::math::tools::digits<T>() <= 53)
-          return bessel_k1_imp(x, boost::integral_constant<int, 53>());
+          return bessel_k1_imp(x, mpl::int_<53>());
        else if(boost::math::tools::digits<T>() <= 64)
-          return bessel_k1_imp(x, boost::integral_constant<int, 64>());
+          return bessel_k1_imp(x, mpl::int_<64>());
        else if(boost::math::tools::digits<T>() <= 113)
-          return bessel_k1_imp(x, boost::integral_constant<int, 113>());
+          return bessel_k1_imp(x, mpl::int_<113>());
        BOOST_ASSERT(0);
        return 0;
     }
@@ -534,7 +524,7 @@ namespace boost { namespace math { namespace detail{
     template <typename T>
    inline T bessel_k1(const T& x)
    {
-      typedef boost::integral_constant<int,
+      typedef mpl::int_<
          ((std::numeric_limits<T>::digits == 0) || (std::numeric_limits<T>::radix != 2)) ?
          0 :
          std::numeric_limits<T>::digits <= 24 ?

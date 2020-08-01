@@ -9,7 +9,6 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/context/detail/config.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/move/move.hpp>
@@ -116,10 +115,6 @@ public:
         { fn_( push_coro); }
         catch ( forced_unwind const&)
         {}
-#if defined( BOOST_CONTEXT_HAS_CXXABI_H )
-        catch ( abi::__forced_unwind const&)
-        { throw; }
-#endif
         catch (...)
         { base_t::except_ = current_exception(); }
 
@@ -203,10 +198,6 @@ public:
         { fn_( push_coro); }
         catch ( forced_unwind const&)
         {}
-#if defined( BOOST_CONTEXT_HAS_CXXABI_H )
-        catch ( abi::__forced_unwind const&)
-        { throw; }
-#endif
         catch (...)
         { base_t::except_ = current_exception(); }
 
@@ -290,10 +281,6 @@ public:
         { fn_( push_coro); }
         catch ( forced_unwind const&)
         {}
-#if defined( BOOST_CONTEXT_HAS_CXXABI_H )
-        catch ( abi::__forced_unwind const&)
-        { throw; }
-#endif
         catch (...)
         { base_t::except_ = current_exception(); }
 

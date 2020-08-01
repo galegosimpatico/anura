@@ -6,9 +6,11 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
-#ifndef BOOST_SPIRIT_X3_DIRECTIVE_REPEAT_HPP
-#define BOOST_SPIRIT_X3_DIRECTIVE_REPEAT_HPP
+#if !defined(SPIRIT_X3_REPEAT_APRIL_16_2014_0848AM)
+#define SPIRIT_X3_REPEAT_APRIL_16_2014_0848AM
 
+#include <boost/function_types/function_type.hpp>
+#include <boost/function_types/parameter_types.hpp>
 #include <boost/spirit/home/x3/core/parser.hpp>
 #include <boost/spirit/home/x3/operator/kleene.hpp>
 
@@ -55,7 +57,7 @@ namespace boost { namespace spirit { namespace x3
         static bool const is_pass_through_unary = true;
         static bool const handles_container = true;
 
-        constexpr repeat_directive(Subject const& subject, RepeatCountLimit const& repeat_limit_)
+        repeat_directive(Subject const& subject, RepeatCountLimit const& repeat_limit_)
           : base_type(subject)
           , repeat_limit(repeat_limit_)
         {}
@@ -91,25 +93,26 @@ namespace boost { namespace spirit { namespace x3
 
     // Infinite loop tag type
     struct inf_type {};
-    constexpr inf_type inf = inf_type();
+    const inf_type inf = inf_type();
 
     struct repeat_gen
     {
         template<typename Subject>
-        constexpr auto operator[](Subject const& subject) const
+        kleene<typename extension::as_parser<Subject>::value_type>
+        operator[](Subject const& subject) const
         {
-            return *as_parser(subject);
+            return { as_parser(subject) };
         }
 
         template <typename T>
         struct repeat_gen_lvl1
         {
-            constexpr repeat_gen_lvl1(T&& repeat_limit_)
+            repeat_gen_lvl1(T&& repeat_limit_)
               : repeat_limit(repeat_limit_)
             {}
 
             template<typename Subject>
-            constexpr repeat_directive< typename extension::as_parser<Subject>::value_type, T>
+            repeat_directive< typename extension::as_parser<Subject>::value_type, T>
             operator[](Subject const& subject) const
             {
                 return { as_parser(subject),repeat_limit };
@@ -119,28 +122,28 @@ namespace boost { namespace spirit { namespace x3
         };
 
         template <typename T>
-        constexpr repeat_gen_lvl1<detail::exact_count<T>>
+        repeat_gen_lvl1<detail::exact_count<T>>
         operator()(T const exact) const
         {
             return { detail::exact_count<T>{exact} };
         }
 
         template <typename T>
-        constexpr repeat_gen_lvl1<detail::finite_count<T>>
+        repeat_gen_lvl1<detail::finite_count<T>>
         operator()(T const min_val, T const max_val) const
         {
             return { detail::finite_count<T>{min_val,max_val} };
         }
 
         template <typename T>
-        constexpr repeat_gen_lvl1<detail::infinite_count<T>>
+        repeat_gen_lvl1<detail::infinite_count<T>>
         operator()(T const min_val, inf_type const &) const
         {
             return { detail::infinite_count<T>{min_val} };
         }
     };
 
-    constexpr auto repeat = repeat_gen{};
+    auto const repeat = repeat_gen{};
 }}}
 
 namespace boost { namespace spirit { namespace x3 { namespace traits

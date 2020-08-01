@@ -27,7 +27,6 @@
 #include <boost/accumulators/statistics/tail_variate.hpp>
 #include <boost/accumulators/statistics/tail_mean.hpp>
 #include <boost/accumulators/statistics/parameters/quantile_probability.hpp>
-#include <boost/serialization/vector.hpp>
 
 #ifdef _MSC_VER
 # pragma warning(push)
@@ -144,13 +143,6 @@ namespace impl
                 }
             }
             return make_iterator_range(this->tail_means_);
-        }
-
-        // make this accumulator serializeable
-        template<class Archive>
-        void serialize(Archive & ar, const unsigned int file_version)
-        { 
-            ar & tail_means_;
         }
 
     private:

@@ -20,7 +20,6 @@
 
 #include <boost/test/tree/decorator.hpp>
 #include <boost/test/tree/fixture.hpp>
-#include <boost/test/framework.hpp>
 
 #include <boost/test/tools/assertion_result.hpp>
 
@@ -43,7 +42,7 @@ namespace boost {
 namespace unit_test {
 
 namespace framework {
-  class state;
+class state;
 }
 
 // ************************************************************************** //
@@ -114,6 +113,8 @@ protected:
     test_unit( const_string tu_name, const_string tc_file, std::size_t tc_line, test_unit_type t );
     // Master test suite constructor
     explicit                            test_unit( const_string module_name );
+
+private:
 };
 
 // ************************************************************************** //
@@ -174,21 +175,11 @@ public:
     void            add( test_unit_generator const& gen, unsigned timeout = 0 );
 
     /// @overload
-    void            add( test_unit_generator const& gen, decorator::collector_t& decorators );
-  
-    /// @overload
-    void            add( boost::shared_ptr<test_unit_generator> gen_ptr, decorator::collector_t& decorators );
+    void            add( test_unit_generator const& gen, decorator::collector& decorators );
 
     //! Removes a test from the test suite.
     void            remove( test_unit_id id );
-  
-    //! Generates all the delayed test_units from the generators
-    void            generate( );
 
-    //! Check for duplicates name in test cases
-    //!
-    //! Raises a setup_error if there are duplicates
-    void            check_for_duplicate_test_cases();
 
     // access methods
     test_unit_id    get( const_string tu_name ) const;
@@ -208,8 +199,6 @@ protected:
 
     test_unit_id_list   m_children;
     children_per_rank   m_ranked_children; ///< maps child sibling rank to list of children with that rank
-  
-    std::vector< std::pair<boost::shared_ptr<test_unit_generator>, std::vector<decorator::base_ptr> > > m_generators; /// lazy evaluation
 };
 
 // ************************************************************************** //
@@ -217,17 +206,12 @@ protected:
 // ************************************************************************** //
 
 class BOOST_TEST_DECL master_test_suite_t : public test_suite {
-private:
-    master_test_suite_t();
-    master_test_suite_t(const master_test_suite_t&); // undefined
-    master_test_suite_t& operator=(master_test_suite_t const &); // undefined
-  
 public:
+    master_test_suite_t();
+
     // Data members
     int      argc;
     char**   argv;
-  
-    friend BOOST_TEST_DECL master_test_suite_t& boost::unit_test::framework::master_test_suite();
 };
 
 // ************************************************************************** //

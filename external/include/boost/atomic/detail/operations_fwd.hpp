@@ -25,9 +25,6 @@ namespace boost {
 namespace atomics {
 namespace detail {
 
-template< std::size_t Size, std::size_t Alignment, bool Signed >
-struct emulated_operations;
-
 template< std::size_t Size, bool Signed >
 struct operations;
 

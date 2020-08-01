@@ -19,7 +19,6 @@
 #endif
 
 #include <boost/config.hpp>
-#include <boost/core/ignore_unused.hpp>
 #include <boost/swap.hpp>
 #include <boost/integer.hpp>
 
@@ -76,7 +75,8 @@ struct checker
     {
         BOOST_GEOMETRY_INDEX_ASSERT(s <= v.capacity(), "size too big");
 
-        ::boost::ignore_unused(v, s);
+        ::boost::ignore_unused_variable_warning(v);
+        ::boost::ignore_unused_variable_warning(s);
     }
 
     static inline void throw_out_of_bounds(Varray const& v, size_type i)
@@ -84,35 +84,39 @@ struct checker
         if ( v.size() <= i )
             throw_out_of_range("index out of bounds");
 
-        ::boost::ignore_unused(v, i);
+        ::boost::ignore_unused_variable_warning(v);
+        ::boost::ignore_unused_variable_warning(i);
     }
 
     static inline void check_index(Varray const& v, size_type i)
     {
         BOOST_GEOMETRY_INDEX_ASSERT(i < v.size(), "index out of bounds");
 
-        ::boost::ignore_unused(v, i);
+        ::boost::ignore_unused_variable_warning(v);
+        ::boost::ignore_unused_variable_warning(i);
     }
 
     static inline void check_not_empty(Varray const& v)
     {
         BOOST_GEOMETRY_INDEX_ASSERT(!v.empty(), "the container is empty");
         
-        ::boost::ignore_unused(v);
+        ::boost::ignore_unused_variable_warning(v);
     }
 
     static inline void check_iterator_end_neq(Varray const& v, const_iterator position)
     {
         BOOST_GEOMETRY_INDEX_ASSERT(v.begin() <= position && position < v.end(), "iterator out of bounds");
 
-        ::boost::ignore_unused(v, position);
+        ::boost::ignore_unused_variable_warning(v);
+        ::boost::ignore_unused_variable_warning(position);
     }
 
     static inline void check_iterator_end_eq(Varray const& v, const_iterator position)
     {
         BOOST_GEOMETRY_INDEX_ASSERT(v.begin() <= position && position <= v.end(), "iterator out of bounds");
 
-        ::boost::ignore_unused(v, position);
+        ::boost::ignore_unused_variable_warning(v);
+        ::boost::ignore_unused_variable_warning(position);
     }
 };
 

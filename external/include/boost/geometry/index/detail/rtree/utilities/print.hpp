@@ -4,10 +4,6 @@
 //
 // Copyright (c) 2011-2013 Adam Wulkiewicz, Lodz, Poland.
 //
-// This file was modified by Oracle on 2019.
-// Modifications copyright (c) 2019 Oracle and/or its affiliates.
-// Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
-//
 // Use, modification and distribution is subject to the Boost Software License,
 // Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -133,16 +129,13 @@ namespace rtree { namespace utilities {
 
 namespace visitors {
 
-template <typename MembersHolder>
-struct print
-    : public MembersHolder::visitor_const
+template <typename Value, typename Options, typename Translator, typename Box, typename Allocators>
+struct print : public rtree::visitor<Value, typename Options::parameters_type, Box, Allocators, typename Options::node_tag, true>::type
 {
-    typedef typename MembersHolder::translator_type translator_type;
+    typedef typename rtree::internal_node<Value, typename Options::parameters_type, Box, Allocators, typename Options::node_tag>::type internal_node;
+    typedef typename rtree::leaf<Value, typename Options::parameters_type, Box, Allocators, typename Options::node_tag>::type leaf;
 
-    typedef typename MembersHolder::internal_node internal_node;
-    typedef typename MembersHolder::leaf leaf;
-
-    inline print(std::ostream & o, translator_type const& t)
+    inline print(std::ostream & o, Translator const& t)
         : os(o), tr(t), level(0)
     {}
 
@@ -196,7 +189,7 @@ struct print
     }
 
     std::ostream & os;
-    translator_type const& tr;
+    Translator const& tr;
 
     size_t level;
 };
@@ -210,7 +203,11 @@ void print(std::ostream & os, Rtree const& tree)
     RTV rtv(tree);
 
     visitors::print<
-        typename RTV::members_holder
+        typename RTV::value_type,
+        typename RTV::options_type,
+        typename RTV::translator_type,
+        typename RTV::box_type,
+        typename RTV::allocators_type
     > print_v(os, rtv.translator());
     rtv.apply_visitor(print_v);
 }

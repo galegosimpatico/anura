@@ -6,7 +6,7 @@
 
 # ifdef BOOST_OLD_CONCEPT_SUPPORT
 #  include <boost/concept_check/has_constraints.hpp>
-#  include <boost/type_traits/conditional.hpp>
+#  include <boost/mpl/if.hpp>
 # endif
 
 
@@ -40,7 +40,7 @@ namespace boost
 
   template <class Model>
   struct concept_check
-    : conditional<
+    : mpl::if_c<
           concept_checking::has_constraints<Model>::value
         , concept_checking::constraint_check<Model>
         , concept_checking::concept_check_<Model>

@@ -4,8 +4,8 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_SPIRIT_KARMA_DETAIL_ATTRIBUTES_HPP
-#define BOOST_SPIRIT_KARMA_DETAIL_ATTRIBUTES_HPP
+#if !defined(SPIRIT_KARMA_DETAIL_ATTRIBUTES_APR_18_2010_0453PM)
+#define SPIRIT_KARMA_DETAIL_ATTRIBUTES_APR_18_2010_0453PM
 
 #include <boost/spirit/home/karma/domain.hpp>
 #include <boost/spirit/home/support/attributes_fwd.hpp>
@@ -44,6 +44,22 @@ namespace boost { namespace spirit { namespace karma
         // Karma only, no post() and no fail() required
     };
 
+    // reference types need special handling
+    template <typename Exposed, typename Transformed>
+    struct transform_attribute<Exposed&, Transformed>
+      : transform_attribute<Exposed, Transformed>
+    {};
+
+    template <typename Exposed, typename Transformed>
+    struct transform_attribute<Exposed const&, Transformed>
+      : transform_attribute<Exposed const, Transformed>
+    {};
+
+    template <typename Attribute>
+    struct transform_attribute<Attribute const&, Attribute>
+      : transform_attribute<Attribute const, Attribute>
+    {};
+
     // unused_type needs some special handling as well
     template <>
     struct transform_attribute<unused_type, unused_type>
@@ -54,6 +70,16 @@ namespace boost { namespace spirit { namespace karma
 
     template <>
     struct transform_attribute<unused_type const, unused_type>
+      : transform_attribute<unused_type, unused_type>
+    {};
+
+    template <typename Attribute>
+    struct transform_attribute<unused_type, Attribute>
+      : transform_attribute<unused_type, unused_type>
+    {};
+
+    template <typename Attribute>
+    struct transform_attribute<unused_type const, Attribute>
       : transform_attribute<unused_type, unused_type>
     {};
 
@@ -69,12 +95,14 @@ namespace boost { namespace spirit { namespace karma
 }}}
 
 ///////////////////////////////////////////////////////////////////////////////
-namespace boost { namespace spirit { namespace traits { namespace detail
+namespace boost { namespace spirit { namespace traits
 {
     template <typename Exposed, typename Transformed>
-    struct transform_attribute_base<Exposed, Transformed, karma::domain>
+    struct transform_attribute<Exposed, Transformed, karma::domain>
       : karma::transform_attribute<Exposed, Transformed>
     {};
-}}}}
+}}}
 
 #endif
+
+

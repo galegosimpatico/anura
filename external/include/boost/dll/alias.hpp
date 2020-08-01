@@ -1,5 +1,5 @@
 // Copyright 2014 Renato Tegon Forti, Antony Polukhin.
-// Copyright 2015-2019 Antony Polukhin.
+// Copyright 2015 Antony Polukhin.
 //
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt
@@ -8,15 +8,11 @@
 #ifndef BOOST_DLL_ALIAS_HPP
 #define BOOST_DLL_ALIAS_HPP
 
-#include <boost/dll/config.hpp>
+#include <boost/config.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/predef/compiler.h>
 #include <boost/predef/os.h>
 #include <boost/dll/detail/aggressive_ptr_cast.hpp>
-
-#if BOOST_COMP_GNUC // MSVC does not have <stdint.h> and defines it in some other header, MinGW requires that header.
-#include <stdint.h> // intptr_t
-#endif
 
 #ifdef BOOST_HAS_PRAGMA_ONCE
 # pragma once
@@ -36,18 +32,18 @@ namespace boost { namespace dll {
 #define BOOST_DLL_FORCE_ALIAS_INSTANTIATION
 
 /// Define this macro to disable exporting weak symbols and start using the \forcedmacrolink{BOOST_DLL_FORCE_ALIAS_INSTANTIATION}.
-/// This may be useful for working around linker problems or to test your program for compatibility with linkers that do not support export of weak symbols.
+/// This may be usefull for working around linker problems or to test your program for compatability with linkers that do not support export of weak symbols.
 #define BOOST_DLL_FORCE_NO_WEAK_EXPORTS
 #endif
 
-#if defined(_MSC_VER) // MSVC, Clang-cl, and ICC on Windows
+#if BOOST_COMP_MSVC || (BOOST_COMP_INTEL && BOOST_OS_WINDOWS)
 
 #define BOOST_DLL_SELECTANY __declspec(selectany)
 
 #define BOOST_DLL_SECTION(SectionName, Permissions)                                             \
     BOOST_STATIC_ASSERT_MSG(                                                                    \
         sizeof(#SectionName) < 10,                                                              \
-        "Some platforms require section names to be at most 8 bytes"                            \
+        "Some platforms require section names to be at most 8 bytest"                           \
     );                                                                                          \
     __pragma(section(#SectionName, Permissions)) __declspec(allocate(#SectionName))             \
     /**/
@@ -86,7 +82,7 @@ namespace boost { namespace dll {
 #define BOOST_DLL_SECTION(SectionName, Permissions)                                             \
     BOOST_STATIC_ASSERT_MSG(                                                                    \
         sizeof(#SectionName) < 10,                                                              \
-        "Some platforms require section names to be at most 8 bytes"                            \
+        "Some platforms require section names to be at most 8 bytest"                           \
     );                                                                                          \
     __attribute__ ((section (#SectionName)))                                                    \
     /**/
@@ -95,7 +91,7 @@ namespace boost { namespace dll {
 #define BOOST_DLL_SECTION(SectionName, Permissions)                                             \
     BOOST_STATIC_ASSERT_MSG(                                                                    \
         sizeof(#SectionName) < 10,                                                              \
-        "Some platforms require section names to be at most 8 bytes"                            \
+        "Some platforms require section names to be at most 8 bytest"                           \
     );                                                                                          \
     __attribute__ ((section ( "__DATA," #SectionName)))                                         \
     /**/
@@ -128,7 +124,7 @@ namespace boost { namespace dll {
 /*!
 * \brief Makes an alias name for exported function or variable.
 *
-* This macro is useful in cases of long mangled C++ names. For example some `void boost::foo(std::string)`
+* This macro is useful in cases of long mangled C++ names. For example some `void boost::foo(std::sting)`
 * function name will change to something like `N5boostN3foosE` after mangling.
 * Importing function by `N5boostN3foosE` name does not looks user friendly, especially assuming the fact
 * that different compilers have different mangling schemes. AliasName is the name that won't be mangled
@@ -217,7 +213,7 @@ namespace boost { namespace dll {
 /*!
 * \brief Exports variable or function with unmangled alias name.
 *
-* This macro is useful in cases of long mangled C++ names. For example some `void boost::foo(std::string)`
+* This macro is useful in cases of long mangled C++ names. For example some `void boost::foo(std::sting)`
 * function name will change to something like `N5boostN3foosE` after mangling.
 * Importing function by `N5boostN3foosE` name does not looks user friendly, especially assuming the fact
 * that different compilers have different mangling schemes.*

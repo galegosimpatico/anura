@@ -14,7 +14,6 @@
 
 #include <iterator>    // for std::distance, advance
 
-#include <boost/config.hpp>
 #include <boost/range/begin.hpp>
 #include <boost/range/end.hpp>
 

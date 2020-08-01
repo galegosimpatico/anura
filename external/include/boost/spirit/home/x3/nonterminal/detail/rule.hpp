@@ -12,6 +12,7 @@
 #include <boost/spirit/home/x3/core/parser.hpp>
 #include <boost/spirit/home/x3/core/skip_over.hpp>
 #include <boost/spirit/home/x3/directive/expect.hpp>
+#include <boost/spirit/home/x3/support/traits/make_attribute.hpp>
 #include <boost/spirit/home/x3/support/utility/sfinae.hpp>
 #include <boost/spirit/home/x3/nonterminal/detail/transform_attribute.hpp>
 #include <boost/utility/addressof.hpp>
@@ -19,8 +20,6 @@
 #if defined(BOOST_SPIRIT_X3_DEBUG)
 #include <boost/spirit/home/x3/nonterminal/simple_trace.hpp>
 #endif
-
-#include <type_traits>
 
 namespace boost { namespace spirit { namespace x3
 {
@@ -193,7 +192,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
             typedef
                 decltype(parse_rule(
                     rule<ID, Attribute>(), first, last
-                  , make_unique_context<ID>(rhs, context), std::declval<Attribute&>()))
+                  , make_unique_context<ID>(rhs, context), attr))
             parse_rule_result;
 
             // If there is no BOOST_SPIRIT_DEFINE for this rule,
@@ -304,14 +303,18 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
         {
             boost::ignore_unused(rule_name);
 
+            typedef traits::make_attribute<Attribute, ActualAttribute> make_attribute;
+
             // do down-stream transformation, provides attribute for
             // rhs parser
             typedef traits::transform_attribute<
-                ActualAttribute, Attribute, parser_id>
+                typename make_attribute::type, Attribute, parser_id>
             transform;
 
+            typedef typename make_attribute::value_type value_type;
             typedef typename transform::type transform_attr;
-            transform_attr attr_ = transform::pre(attr);
+            value_type made_attr = make_attribute::call(attr);
+            transform_attr attr_ = transform::pre(made_attr);
 
             bool ok_parse
               //Creates a place to hold the result of parse_rhs
@@ -322,7 +325,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
              // the #if...#endif) to call it's DTOR before any
              // modifications are made to the attribute, attr_ passed
              // to parse_rhs (such as might be done in
-             // transform::post when, for example,
+             // traits::post_transform when, for example,
              // ActualAttribute is a recursive variant).
 #if defined(BOOST_SPIRIT_X3_DEBUG)
                 context_debug<Iterator, transform_attr>
@@ -340,7 +343,7 @@ namespace boost { namespace spirit { namespace x3 { namespace detail
             {
                 // do up-stream transformation, this integrates the results
                 // back into the original attribute value, if appropriate
-                transform::post(attr, std::forward<transform_attr>(attr_));
+                traits::post_transform(attr, std::forward<transform_attr>(attr_));
             }
             return ok_parse;
         }

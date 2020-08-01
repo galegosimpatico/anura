@@ -31,11 +31,9 @@
     debug mode. However an end-user can force the macro 
     to check or not check by defining the macro 
     BOOST_VMD_ASSERT_DATA to 1 or 0 respectively.
-  
+
     sequence = a possible Boost PP  array.
 
-  @code
-  
     returns  = Normally the macro returns nothing. 
     
                If the sequence is a Boost PP array, nothing is 
@@ -50,8 +48,6 @@
                without producing output if the sequence is not a 
                Boost PP array.
     
-  @endcode
-  
 */
 
 /** \def BOOST_VMD_ASSERT_IS_ARRAY_D(d,sequence)
@@ -65,12 +61,10 @@
     debug mode. However an end-user can force the macro 
     to check or not check by defining the macro 
     BOOST_VMD_ASSERT_DATA to 1 or 0 respectively.
-  
-    d        = The next available BOOST_PP_WHILE iteration. <br/>
+
+    d        = The next available BOOST_PP_WHILE iteration.
     sequence = a possible Boost PP sequence.
 
-  @code
-  
     returns  = Normally the macro returns nothing. 
     
                If the sequence is a Boost PP array, nothing is 
@@ -85,8 +79,6 @@
                without producing output if the sequence is not a 
                Boost PP array.
     
-  @endcode
-  
 */
 
 #if !BOOST_VMD_ASSERT_DATA

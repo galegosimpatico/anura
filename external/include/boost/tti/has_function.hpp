@@ -23,20 +23,15 @@
 /** \file
 */
 
-/// A macro which expands to a metafunction which tests whether a member function or a static member function with a particular name and signature exists.
+/// Expands to a metafunction which tests whether a member function or a static member function with a particular name and signature exists.
 /**
 
-    BOOST_TTI_TRAIT_HAS_FUNCTION is a macro which expands to a metafunction.
-    The metafunction tests whether a member function or a static member function with a particular name
-    and signature exists. The macro takes the form of BOOST_TTI_TRAIT_HAS_FUNCTION(trait,name) where
+    trait = the name of the metafunction within the tti namespace.
     
-    trait = the name of the metafunction <br/>
     name  = the name of the inner member.
 
-    BOOST_TTI_TRAIT_HAS_FUNCTION generates a metafunction called "trait" where 'trait' is the macro parameter.
+    generates a metafunction called "trait" where 'trait' is the macro parameter.
     
-  @code
-  
               template<class BOOST_TTI_TP_T,class BOOST_TTI_TP_R,class BOOST_TTI_TP_FS,class BOOST_TTI_TP_TAG>
               struct trait
                 {
@@ -47,7 +42,6 @@
               The metafunction types and return:
     
                 BOOST_TTI_TP_T   = the enclosing type in which to look for our 'name'.
-                                   The enclosing type can be a class, struct, or union.
                 
                 BOOST_TTI_TP_R   = the return type of the function
                 
@@ -61,8 +55,6 @@
                           with the appropriate static member function type,
                           otherwise 'value' is false.
                           
-  @endcode
-  
 */
 #define BOOST_TTI_TRAIT_HAS_FUNCTION(trait,name) \
   BOOST_TTI_DETAIL_TRAIT_HAS_FUNCTION(trait,name) \
@@ -75,21 +67,15 @@
     }; \
 /**/
 
-/// A macro which expands to a metafunction which tests whether a member function or a static member function with a particular name and signature exists.
+/// Expands to a metafunction which tests whether a member function or a static member function with a particular name and signature exists.
 /**
 
-    BOOST_TTI_HAS_FUNCTION is a macro which expands to a metafunction.
-    The metafunction tests whether a member function or a static member function with a particular name
-    and signature exists. The macro takes the form of BOOST_TTI_HAS_FUNCTION(name) where
-    
     name  = the name of the inner member.
 
-    BOOST_TTI_HAS_FUNCTION generates a metafunction called "has_function_name" where 'name' is the macro parameter.
+    generates a metafunction called "has_function_name" where 'name' is the macro parameter.
     
-  @code
-  
               template<class BOOST_TTI_TP_T,class BOOST_TTI_TP_R,class BOOST_TTI_TP_FS,class BOOST_TTI_TP_TAG>
-              struct has_function_'name'
+              struct trait
                 {
                 static const value = unspecified;
                 typedef mpl::bool_<true-or-false> type;
@@ -98,7 +84,6 @@
               The metafunction types and return:
     
                 BOOST_TTI_TP_T   = the enclosing type in which to look for our 'name'.
-                                   The enclosing type can be a class, struct, or union.
                 
                 BOOST_TTI_TP_R   = the return type of the function
                 
@@ -112,8 +97,6 @@
                           with the appropriate function type,
                           otherwise 'value' is false.
                           
-  @endcode
-  
 */
 #define BOOST_TTI_HAS_FUNCTION(name) \
   BOOST_TTI_TRAIT_HAS_FUNCTION \

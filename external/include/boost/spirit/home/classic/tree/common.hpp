@@ -26,6 +26,7 @@
 #include <boost/call_traits.hpp>
 #include <boost/spirit/home/classic/namespace.hpp>
 #include <boost/spirit/home/classic/core.hpp>
+#include <boost/detail/iterator.hpp> // for boost::detail::iterator_traits
 #include <boost/assert.hpp>
 
 #if defined(BOOST_SPIRIT_DEBUG) && \
@@ -35,8 +36,6 @@
 #endif
 
 #include <boost/spirit/home/classic/tree/common_fwd.hpp>
-
-#include <iterator> // for std::iterator_traits, std::distance
 
 namespace boost { namespace spirit {
 
@@ -243,7 +242,7 @@ template <typename IteratorT = char const*, typename ValueT = nil_t>
 struct node_val_data
 {
     typedef
-        typename std::iterator_traits<IteratorT>::value_type
+        typename boost::detail::iterator_traits<IteratorT>::value_type
         value_type;
 
 #if !defined(BOOST_SPIRIT_USE_BOOST_ALLOCATOR_FOR_TREES)
@@ -1515,7 +1514,7 @@ const action_directive_parser_gen<access_node_action> access_node_d
 //      length: The number of characters consumed by the parser.
 //              This is valid only if we have a successful match
 //              (either partial or full). A negative value means
-//              that the match is unsuccessful.
+//              that the match is unsucessful.
 //
 //     trees:   Contains the root node(s) of the tree.
 //

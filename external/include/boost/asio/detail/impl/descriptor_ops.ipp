@@ -2,7 +2,7 @@
 // detail/impl/descriptor_ops.ipp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2020 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -58,14 +58,14 @@ int close(int d, state_type& state, boost::system::error_code& ec)
       // current OS where this behaviour is seen, Windows, says that the socket
       // remains open. Therefore we'll put the descriptor back into blocking
       // mode and have another attempt at closing it.
-#if defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
+#if defined(__SYMBIAN32__)
       int flags = ::fcntl(d, F_GETFL, 0);
       if (flags >= 0)
         ::fcntl(d, F_SETFL, flags & ~O_NONBLOCK);
-#else // defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
+#else // defined(__SYMBIAN32__)
       ioctl_arg_type arg = 0;
       ::ioctl(d, FIONBIO, &arg);
-#endif // defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
+#endif // defined(__SYMBIAN32__)
       state &= ~non_blocking;
 
       errno = 0;
@@ -88,7 +88,7 @@ bool set_user_non_blocking(int d, state_type& state,
   }
 
   errno = 0;
-#if defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
+#if defined(__SYMBIAN32__)
   int result = error_wrapper(::fcntl(d, F_GETFL, 0), ec);
   if (result >= 0)
   {
@@ -96,10 +96,10 @@ bool set_user_non_blocking(int d, state_type& state,
     int flag = (value ? (result | O_NONBLOCK) : (result & ~O_NONBLOCK));
     result = error_wrapper(::fcntl(d, F_SETFL, flag), ec);
   }
-#else // defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
+#else // defined(__SYMBIAN32__)
   ioctl_arg_type arg = (value ? 1 : 0);
   int result = error_wrapper(::ioctl(d, FIONBIO, &arg), ec);
-#endif // defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
+#endif // defined(__SYMBIAN32__)
 
   if (result >= 0)
   {
@@ -138,7 +138,7 @@ bool set_internal_non_blocking(int d, state_type& state,
   }
 
   errno = 0;
-#if defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
+#if defined(__SYMBIAN32__)
   int result = error_wrapper(::fcntl(d, F_GETFL, 0), ec);
   if (result >= 0)
   {
@@ -146,10 +146,10 @@ bool set_internal_non_blocking(int d, state_type& state,
     int flag = (value ? (result | O_NONBLOCK) : (result & ~O_NONBLOCK));
     result = error_wrapper(::fcntl(d, F_SETFL, flag), ec);
   }
-#else // defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
+#else // defined(__SYMBIAN32__)
   ioctl_arg_type arg = (value ? 1 : 0);
   int result = error_wrapper(::ioctl(d, FIONBIO, &arg), ec);
-#endif // defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
+#endif // defined(__SYMBIAN32__)
 
   if (result >= 0)
   {
@@ -427,29 +427,6 @@ int poll_write(int d, state_type state, boost::system::error_code& ec)
   pollfd fds;
   fds.fd = d;
   fds.events = POLLOUT;
-  fds.revents = 0;
-  int timeout = (state & user_set_non_blocking) ? 0 : -1;
-  errno = 0;
-  int result = error_wrapper(::poll(&fds, 1, timeout), ec);
-  if (result == 0)
-    ec = (state & user_set_non_blocking)
-      ? boost::asio::error::would_block : boost::system::error_code();
-  else if (result > 0)
-    ec = boost::system::error_code();
-  return result;
-}
-
-int poll_error(int d, state_type state, boost::system::error_code& ec)
-{
-  if (d == -1)
-  {
-    ec = boost::asio::error::bad_descriptor;
-    return -1;
-  }
-
-  pollfd fds;
-  fds.fd = d;
-  fds.events = POLLPRI | POLLERR | POLLHUP;
   fds.revents = 0;
   int timeout = (state & user_set_non_blocking) ? 0 : -1;
   errno = 0;

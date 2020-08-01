@@ -1,4 +1,4 @@
-/* Copyright 2016-2020 Joaquin M Lopez Munoz.
+/* Copyright 2016-2017 Joaquin M Lopez Munoz.
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
  * http://www.boost.org/LICENSE_1_0.txt)
@@ -13,6 +13,7 @@
 #pragma once
 #endif
 
+#include <boost/poly_collection/detail/newdelete_allocator.hpp>
 #include <boost/poly_collection/detail/segment_backend.hpp>
 #include <boost/poly_collection/detail/value_holder.hpp>
 #include <iterator>
@@ -44,24 +45,28 @@ namespace detail{
  */
 
 template<typename Model,typename Concrete,typename Allocator>
-class split_segment:public segment_backend<Model,Allocator>
+class split_segment:public segment_backend<Model>
 {
   using value_type=typename Model::value_type;
   using store_value_type=value_holder<Concrete>;
   using store=std::vector<
     store_value_type,
-    typename std::allocator_traits<Allocator>::
-      template rebind_alloc<store_value_type>
+    value_holder_allocator_adaptor<
+      typename std::allocator_traits<Allocator>::
+        template rebind_alloc<store_value_type>
+    >
   >;
   using store_iterator=typename store::iterator;
   using const_store_iterator=typename store::const_iterator;
   using index=std::vector<
     value_type,
-    typename std::allocator_traits<Allocator>::
-      template rebind_alloc<value_type>
+    newdelete_allocator_adaptor<
+      typename std::allocator_traits<Allocator>::
+        template rebind_alloc<value_type>
+    >
   >;
   using const_index_iterator=typename index::const_iterator;
-  using segment_backend=detail::segment_backend<Model,Allocator>;
+  using segment_backend=detail::segment_backend<Model>;
   using typename segment_backend::segment_backend_unique_ptr;
   using typename segment_backend::value_pointer;
   using typename segment_backend::const_value_pointer;
@@ -71,35 +76,22 @@ class split_segment:public segment_backend<Model,Allocator>
     typename segment_backend::template const_iterator<Concrete>;
   using typename segment_backend::base_sentinel;
   using typename segment_backend::range;
-  using segment_allocator_type=typename std::allocator_traits<Allocator>::
-    template rebind_alloc<split_segment>;
+  using segment_allocator_type=newdelete_allocator_adaptor<
+    typename std::allocator_traits<Allocator>::
+      template rebind_alloc<split_segment>
+  >;
 
 public:
   virtual ~split_segment()=default;
-
-  static segment_backend_unique_ptr make(const segment_allocator_type& al)
-  {
-    return new_(al,al);
-  }
 
   virtual segment_backend_unique_ptr copy()const
   {
     return new_(s.get_allocator(),store{s});
   }
 
-  virtual segment_backend_unique_ptr copy(const Allocator& al)const
+  virtual segment_backend_unique_ptr empty_copy()const
   {
-    return new_(al,store{s,al});
-  }
-
-  virtual segment_backend_unique_ptr empty_copy(const Allocator& al)const
-  {
-    return new_(al,al);
-  }
-
-  virtual segment_backend_unique_ptr move(const Allocator& al)
-  {
-    return new_(al,store{std::move(s),al});
+    return new_(s.get_allocator(),s.get_allocator());
   }
 
   virtual bool equal(const segment_backend& x)const
@@ -107,8 +99,6 @@ public:
     return s==static_cast<const split_segment&>(x).s;
   }
 
-  virtual Allocator     get_allocator()const noexcept
-                         {return s.get_allocator();}
   virtual base_iterator begin()const noexcept{return nv_begin();}
   base_iterator         nv_begin()const noexcept
                          {return base_iterator{value_ptr(i.data())};}
@@ -139,20 +129,13 @@ public:
 
   base_sentinel nv_shrink_to_fit()
   {
-    try{
-      auto p=s.data();
-      if(!s.empty())s.shrink_to_fit();
-      else{
-        store ss{s.get_allocator()};
-        ss.reserve(1); /* --> s.data()!=nullptr */
-        s.swap(ss);
-      }
-      if(p!=s.data()){
-        index ii{{},i.get_allocator()};
-        ii.reserve(s.capacity()+1);
-        i.swap(ii);
-        build_index();
-      }
+    auto p=s.data();
+    s.shrink_to_fit();
+    if(p!=s.data())try{
+      index ii{{},i.get_allocator()};
+      ii.reserve(s.capacity()+1);
+      i.swap(ii);
+      build_index();
     }
     catch(...){
       rebuild_index();
@@ -286,6 +269,8 @@ public:
   }
 
 private:
+  friend Model;
+
   template<typename... Args>
   static segment_backend_unique_ptr new_(
     segment_allocator_type al,Args&&... args)
@@ -311,18 +296,10 @@ private:
 
   split_segment(const Allocator& al):
     s{typename store::allocator_type{al}},
-    i{{},typename index::allocator_type{al}}
-  {
-    s.reserve(1); /* --> s.data()!=nullptr */
-    build_index();
-  }
-
+    i{{},typename index::allocator_type{al}}{build_index();}
   split_segment(store&& s_):
     s{std::move(s_)},i{{},typename index::allocator_type{s.get_allocator()}}
-  {
-    s.reserve(1); /* --> s.data()!=nullptr */
-    build_index();
-  }
+    {build_index();}
 
   void prereserve()
   {

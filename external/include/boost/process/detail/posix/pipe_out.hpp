@@ -52,10 +52,8 @@ template<typename Executor>
 void pipe_out<1,-1>::on_exec_setup(Executor &e) const
 {
     if (::dup2(sink, STDOUT_FILENO) == -1)
-         e.set_error(::boost::process::detail::get_last_error(), "dup2() failed");
-
-    if (sink != STDOUT_FILENO)
-        ::close(sink);
+         e.set_error(::boost::process::detail::get_last_error(), "dup3() failed");
+    ::close(sink);
     ::close(source);
 }
 
@@ -65,9 +63,7 @@ void pipe_out<2,-1>::on_exec_setup(Executor &e) const
 {
     if (::dup2(sink, STDERR_FILENO) == -1)
          e.set_error(::boost::process::detail::get_last_error(), "dup2() failed");
-
-    if (sink != STDOUT_FILENO)
-        ::close(sink);
+    ::close(sink);
     ::close(source);
 }
 
@@ -79,8 +75,8 @@ void pipe_out<1,2>::on_exec_setup(Executor &e) const
          e.set_error(::boost::process::detail::get_last_error(), "dup2() failed");
     if (::dup2(sink, STDERR_FILENO) == -1)
          e.set_error(::boost::process::detail::get_last_error(), "dup2() failed");
-    if ((sink != STDOUT_FILENO) && (sink != STDERR_FILENO))
-        ::close(sink);
+    ::close(sink);
+    ::close(source);
 }
 
 class async_pipe;

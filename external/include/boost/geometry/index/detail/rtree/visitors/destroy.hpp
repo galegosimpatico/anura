@@ -4,10 +4,6 @@
 //
 // Copyright (c) 2011-2014 Adam Wulkiewicz, Lodz, Poland.
 //
-// This file was modified by Oracle on 2019.
-// Modifications copyright (c) 2019 Oracle and/or its affiliates.
-// Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
-//
 // Use, modification and distribution is subject to the Boost Software License,
 // Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -19,20 +15,19 @@ namespace boost { namespace geometry { namespace index {
 
 namespace detail { namespace rtree { namespace visitors {
 
-template <typename MembersHolder>
+template <typename Value, typename Options, typename Translator, typename Box, typename Allocators>
 class destroy
-    : public MembersHolder::visitor
+    : public rtree::visitor<Value, typename Options::parameters_type, Box, Allocators, typename Options::node_tag, false>::type
 {
 public:
-    typedef typename MembersHolder::node node;
-    typedef typename MembersHolder::internal_node internal_node;
-    typedef typename MembersHolder::leaf leaf;
+    typedef typename rtree::node<Value, typename Options::parameters_type, Box, Allocators, typename Options::node_tag>::type node;
+    typedef typename rtree::internal_node<Value, typename Options::parameters_type, Box, Allocators, typename Options::node_tag>::type internal_node;
+    typedef typename rtree::leaf<Value, typename Options::parameters_type, Box, Allocators, typename Options::node_tag>::type leaf;
 
-    typedef typename MembersHolder::allocators_type allocators_type;
-    typedef typename MembersHolder::node_pointer node_pointer;
+    typedef typename Allocators::node_pointer node_pointer;
 
-    inline destroy(node_pointer node, allocators_type & allocators)
-        : m_current_node(node)
+    inline destroy(node_pointer root_node, Allocators & allocators)
+        : m_current_node(root_node)
         , m_allocators(allocators)
     {}
 
@@ -53,7 +48,7 @@ public:
             it->second = 0;
         }
 
-        rtree::destroy_node<allocators_type, internal_node>::apply(m_allocators, node_to_destroy);
+        rtree::destroy_node<Allocators, internal_node>::apply(m_allocators, node_to_destroy);
     }
 
     inline void operator()(leaf & l)
@@ -61,18 +56,12 @@ public:
         boost::ignore_unused(l);
         BOOST_GEOMETRY_INDEX_ASSERT(&l == &rtree::get<leaf>(*m_current_node), "invalid pointers");
 
-        rtree::destroy_node<allocators_type, leaf>::apply(m_allocators, m_current_node);
-    }
-
-    static inline void apply(node_pointer node, allocators_type & allocators)
-    {
-        destroy v(node, allocators);
-        rtree::apply_visitor(v, *node);
+        rtree::destroy_node<Allocators, leaf>::apply(m_allocators, m_current_node);
     }
 
 private:
     node_pointer m_current_node;
-    allocators_type & m_allocators;
+    Allocators & m_allocators;
 };
 
 }}} // namespace detail::rtree::visitors

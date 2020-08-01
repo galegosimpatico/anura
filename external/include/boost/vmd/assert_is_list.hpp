@@ -34,8 +34,6 @@
     
     sequence = a possible Boost PP list.
 
-  @code
-  
     returns  = Normally the macro returns nothing. 
     
                If the sequence is a Boost PP list, nothing is 
@@ -50,8 +48,6 @@
                without producing output if the parameter is not a 
                Boost PP list.
               
-  @endcode
-  
 */
 
 /** \def BOOST_VMD_ASSERT_IS_LIST_D(d,sequence)
@@ -66,11 +62,9 @@
     to check or not check by defining the macro 
     BOOST_VMD_ASSERT_DATA to 1 or 0 respectively.
     
-    d        = The next available BOOST_PP_WHILE iteration. <br/>
+    d        = The next available BOOST_PP_WHILE iteration. 
     sequence = a possible Boost PP list.
 
-  @code
-  
     returns  = Normally the macro returns nothing. 
     
                If the sequence is a Boost PP list, nothing is 
@@ -85,8 +79,6 @@
                without producing output if the parameter is not a 
                Boost PP list.
               
-  @endcode
-  
 */
 
 #if !BOOST_VMD_ASSERT_DATA

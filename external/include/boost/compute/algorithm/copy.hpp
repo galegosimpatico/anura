@@ -103,7 +103,6 @@ dispatch_copy_async(InputIterator first,
                     InputIterator last,
                     OutputIterator result,
                     command_queue &queue,
-                    const wait_list &events,
                     typename boost::enable_if<
                         mpl::and_<
                             mpl::not_<
@@ -119,7 +118,7 @@ dispatch_copy_async(InputIterator first,
         "copy_async() is only supported for contiguous host iterators"
     );
 
-    return copy_to_device_async(first, last, result, queue, events);
+    return copy_to_device_async(first, last, result, queue);
 }
 
 // host -> device (async)
@@ -130,7 +129,6 @@ dispatch_copy_async(InputIterator first,
                     InputIterator last,
                     OutputIterator result,
                     command_queue &queue,
-                    const wait_list &events,
                     typename boost::enable_if<
                         mpl::and_<
                             mpl::not_<
@@ -169,7 +167,7 @@ dispatch_copy_async(InputIterator first,
         context
     );
     return copy_on_device_async(
-        mapped_host.begin(), mapped_host.end(), result, queue, events
+        mapped_host.begin(), mapped_host.end(), result, queue
     );
 }
 
@@ -181,7 +179,6 @@ dispatch_copy(InputIterator first,
               InputIterator last,
               OutputIterator result,
               command_queue &queue,
-              const wait_list &events,
               typename boost::enable_if<
                   mpl::and_<
                       mpl::not_<
@@ -193,7 +190,7 @@ dispatch_copy(InputIterator first,
                   >
               >::type* = 0)
 {
-    return copy_to_device(first, last, result, queue, events);
+    return copy_to_device(first, last, result, queue);
 }
 
 // host -> device
@@ -205,7 +202,6 @@ dispatch_copy(InputIterator first,
               InputIterator last,
               OutputIterator result,
               command_queue &queue,
-              const wait_list &events,
               typename boost::enable_if<
                   mpl::and_<
                       mpl::not_<
@@ -231,8 +227,8 @@ dispatch_copy(InputIterator first,
     boost::shared_ptr<parameter_cache> parameters =
         detail::parameter_cache::get_global_cache(device);
 
-    uint_ map_copy_threshold;
-    uint_ direct_copy_threshold;
+    size_t map_copy_threshold;
+    size_t direct_copy_threshold;
 
     // calculate default values of thresholds
     if (device.type() & device::gpu) {
@@ -262,15 +258,13 @@ dispatch_copy(InputIterator first,
 
     // [0; map_copy_threshold) -> copy_to_device_map()
     if(input_size_bytes < map_copy_threshold) {
-        return copy_to_device_map(first, last, result, queue, events);
+        return copy_to_device_map(first, last, result, queue);
     }
     // [map_copy_threshold; direct_copy_threshold) -> convert [first; last)
     //     on host and then perform copy_to_device()
     else if(input_size_bytes < direct_copy_threshold) {
         std::vector<output_type> vector(first, last);
-        return copy_to_device(
-            vector.begin(), vector.end(), result, queue, events
-        );
+        return copy_to_device(vector.begin(), vector.end(), result, queue);
     }
 
     // [direct_copy_threshold; inf) -> map [first; last) to device and
@@ -281,7 +275,7 @@ dispatch_copy(InputIterator first,
     // return the result.
     // At this point we are sure that count > 1 (first != last), so event
     // returned by dispatch_copy_async() must be valid.
-    return dispatch_copy_async(first, last, result, queue, events).get();
+    return dispatch_copy_async(first, last, result, queue).get();
 }
 
 // host -> device
@@ -292,7 +286,6 @@ dispatch_copy(InputIterator first,
               InputIterator last,
               OutputIterator result,
               command_queue &queue,
-              const wait_list &events,
               typename boost::enable_if<
                   mpl::and_<
                       mpl::not_<
@@ -317,8 +310,8 @@ dispatch_copy(InputIterator first,
     boost::shared_ptr<parameter_cache> parameters =
         detail::parameter_cache::get_global_cache(device);
 
-    uint_ map_copy_threshold;
-    uint_ direct_copy_threshold;
+    size_t map_copy_threshold;
+    size_t direct_copy_threshold;
 
     // calculate default values of thresholds
     if (device.type() & device::gpu) {
@@ -352,12 +345,12 @@ dispatch_copy(InputIterator first,
     // copy_to_device_map() is used for every input
     if(input_size_bytes < map_copy_threshold
         || direct_copy_threshold <= map_copy_threshold) {
-        return copy_to_device_map(first, last, result, queue, events);
+        return copy_to_device_map(first, last, result, queue);
     }
     // [map_copy_threshold; inf) -> convert [first; last)
     //     on host and then perform copy_to_device()
     std::vector<output_type> vector(first, last);
-    return copy_to_device(vector.begin(), vector.end(), result, queue, events);
+    return copy_to_device(vector.begin(), vector.end(), result, queue);
 }
 
 // device -> host (async)
@@ -367,7 +360,6 @@ dispatch_copy_async(InputIterator first,
                     InputIterator last,
                     OutputIterator result,
                     command_queue &queue,
-                    const wait_list &events,
                     typename boost::enable_if<
                         mpl::and_<
                             is_device_iterator<InputIterator>,
@@ -383,7 +375,7 @@ dispatch_copy_async(InputIterator first,
         "copy_async() is only supported for contiguous host iterators"
     );
 
-    return copy_to_host_async(first, last, result, queue, events);
+    return copy_to_host_async(first, last, result, queue);
 }
 
 // device -> host (async)
@@ -394,7 +386,6 @@ dispatch_copy_async(InputIterator first,
                     InputIterator last,
                     OutputIterator result,
                     command_queue &queue,
-                    const wait_list &events,
                     typename boost::enable_if<
                         mpl::and_<
                             is_device_iterator<InputIterator>,
@@ -435,8 +426,7 @@ dispatch_copy_async(InputIterator first,
             first,
             last,
             make_buffer_iterator<output_type>(mapped_host),
-            queue,
-            events
+            queue
         );
     // update host memory asynchronously by maping and unmaping memory
     event map_event;
@@ -461,7 +451,6 @@ dispatch_copy(InputIterator first,
               InputIterator last,
               OutputIterator result,
               command_queue &queue,
-              const wait_list &events,
               typename boost::enable_if<
                   mpl::and_<
                       is_device_iterator<InputIterator>,
@@ -476,7 +465,7 @@ dispatch_copy(InputIterator first,
                   >
               >::type* = 0)
 {
-    return copy_to_host(first, last, result, queue, events);
+    return copy_to_host(first, last, result, queue);
 }
 
 // device -> host
@@ -489,7 +478,6 @@ dispatch_copy(InputIterator first,
               InputIterator last,
               OutputIterator result,
               command_queue &queue,
-              const wait_list &events,
               typename boost::enable_if<
                   mpl::and_<
                       is_device_iterator<InputIterator>,
@@ -517,8 +505,8 @@ dispatch_copy(InputIterator first,
     boost::shared_ptr<parameter_cache> parameters =
         detail::parameter_cache::get_global_cache(device);
 
-    uint_ map_copy_threshold;
-    uint_ direct_copy_threshold;
+    size_t map_copy_threshold;
+    size_t direct_copy_threshold;
 
     // calculate default values of thresholds
     if (device.type() & device::gpu) {
@@ -552,12 +540,12 @@ dispatch_copy(InputIterator first,
     // copy_to_host_map() is used for every input
     if(input_size_bytes < map_copy_threshold
         || direct_copy_threshold <= map_copy_threshold) {
-        return copy_to_host_map(first, last, result, queue, events);
+        return copy_to_host_map(first, last, result, queue);
     }
     // [map_copy_threshold; inf) -> copy [first;last) to temporary vector
     //     then copy (and convert) to result using std::copy()
     std::vector<input_type> vector(count);
-    copy_to_host(first, last, vector.begin(), queue, events);
+    copy_to_host(first, last, vector.begin(), queue);
     return std::copy(vector.begin(), vector.end(), result);
 }
 
@@ -571,7 +559,6 @@ dispatch_copy(InputIterator first,
               InputIterator last,
               OutputIterator result,
               command_queue &queue,
-              const wait_list &events,
               typename boost::enable_if<
                   mpl::and_<
                       is_device_iterator<InputIterator>,
@@ -600,8 +587,8 @@ dispatch_copy(InputIterator first,
     boost::shared_ptr<parameter_cache> parameters =
         detail::parameter_cache::get_global_cache(device);
 
-    uint_ map_copy_threshold;
-    uint_ direct_copy_threshold;
+    size_t map_copy_threshold;
+    size_t direct_copy_threshold;
 
     // calculate default values of thresholds
     if (device.type() & device::gpu) {
@@ -631,13 +618,13 @@ dispatch_copy(InputIterator first,
 
     // [0; map_copy_threshold) -> copy_to_host_map()
     if(input_size_bytes < map_copy_threshold) {
-        return copy_to_host_map(first, last, result, queue, events);
+        return copy_to_host_map(first, last, result, queue);
     }
     // [map_copy_threshold; direct_copy_threshold) -> copy [first;last) to
     //     temporary vector then copy (and convert) to result using std::copy()
     else if(input_size_bytes < direct_copy_threshold) {
         std::vector<input_type> vector(count);
-        copy_to_host(first, last, vector.begin(), queue, events);
+        copy_to_host(first, last, vector.begin(), queue);
         return std::copy(vector.begin(), vector.end(), result);
     }
 
@@ -649,7 +636,7 @@ dispatch_copy(InputIterator first,
     // return the result.
     // At this point we are sure that count > 1 (first != last), so event
     // returned by dispatch_copy_async() must be valid.
-    return dispatch_copy_async(first, last, result, queue, events).get();
+    return dispatch_copy_async(first, last, result, queue).get();
 }
 
 // device -> device
@@ -659,7 +646,6 @@ dispatch_copy(InputIterator first,
               InputIterator last,
               OutputIterator result,
               command_queue &queue,
-              const wait_list &events,
               typename boost::enable_if<
                   mpl::and_<
                       is_device_iterator<InputIterator>,
@@ -672,7 +658,7 @@ dispatch_copy(InputIterator first,
                   >
               >::type* = 0)
 {
-    return copy_on_device(first, last, result, queue, events);
+    return copy_on_device(first, last, result, queue);
 }
 
 // device -> device (specialization for buffer iterators)
@@ -682,7 +668,6 @@ dispatch_copy(InputIterator first,
               InputIterator last,
               OutputIterator result,
               command_queue &queue,
-              const wait_list &events,
               typename boost::enable_if<
                   mpl::and_<
                       is_device_iterator<InputIterator>,
@@ -706,8 +691,7 @@ dispatch_copy(InputIterator first,
                               result.get_buffer(),
                               first.get_index() * sizeof(value_type),
                               result.get_index() * sizeof(value_type),
-                              static_cast<size_t>(n) * sizeof(value_type),
-                              events);
+                              static_cast<size_t>(n) * sizeof(value_type));
     return result + n;
 }
 
@@ -718,7 +702,6 @@ dispatch_copy_async(InputIterator first,
                     InputIterator last,
                     OutputIterator result,
                     command_queue &queue,
-                    const wait_list &events,
                     typename boost::enable_if<
                         mpl::and_<
                             is_device_iterator<InputIterator>,
@@ -731,7 +714,7 @@ dispatch_copy_async(InputIterator first,
                         >
                     >::type* = 0)
 {
-    return copy_on_device_async(first, last, result, queue, events);
+    return copy_on_device_async(first, last, result, queue);
 }
 
 // device -> device (async, specialization for buffer iterators)
@@ -741,7 +724,6 @@ dispatch_copy_async(InputIterator first,
                     InputIterator last,
                     OutputIterator result,
                     command_queue &queue,
-                    const wait_list &events,
                     typename boost::enable_if<
                         mpl::and_<
                             is_device_iterator<InputIterator>,
@@ -767,8 +749,7 @@ dispatch_copy_async(InputIterator first,
             result.get_buffer(),
             first.get_index() * sizeof(value_type),
             result.get_index() * sizeof(value_type),
-            static_cast<size_t>(n) * sizeof(value_type),
-            events
+            static_cast<size_t>(n) * sizeof(value_type)
         );
 
     return make_future(result + n, event_);
@@ -781,14 +762,12 @@ dispatch_copy(InputIterator first,
               InputIterator last,
               OutputIterator result,
               command_queue &queue,
-              const wait_list &events,
               typename boost::enable_if_c<
                   !is_device_iterator<InputIterator>::value &&
                   !is_device_iterator<OutputIterator>::value
               >::type* = 0)
 {
     (void) queue;
-    (void) events;
 
     return std::copy(first, last, result);
 }
@@ -854,10 +833,9 @@ template<class InputIterator, class OutputIterator>
 inline OutputIterator copy(InputIterator first,
                            InputIterator last,
                            OutputIterator result,
-                           command_queue &queue = system::default_queue(),
-                           const wait_list &events = wait_list())
+                           command_queue &queue = system::default_queue())
 {
-    return detail::dispatch_copy(first, last, result, queue, events);
+    return detail::dispatch_copy(first, last, result, queue);
 }
 
 /// Copies the values in the range [\p first, \p last) to the range
@@ -869,10 +847,9 @@ inline future<OutputIterator>
 copy_async(InputIterator first,
            InputIterator last,
            OutputIterator result,
-           command_queue &queue = system::default_queue(),
-           const wait_list &events = wait_list())
+           command_queue &queue = system::default_queue())
 {
-    return detail::dispatch_copy_async(first, last, result, queue, events);
+    return detail::dispatch_copy_async(first, last, result, queue);
 }
 
 } // end compute namespace

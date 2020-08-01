@@ -10,8 +10,8 @@
 //           Andrew Lumsdaine
 //  See http://www.boost.org/libs/multi_array for documentation.
 
-#ifndef BOOST_MULTI_ARRAY_SUBARRAY_HPP
-#define BOOST_MULTI_ARRAY_SUBARRAY_HPP
+#ifndef SUBARRAY_RG071801_HPP
+#define SUBARRAY_RG071801_HPP
 
 //
 // subarray.hpp - used to implement standard operator[] on
@@ -384,4 +384,4 @@ public:
 };
 } // namespace boost
   
-#endif
+#endif // SUBARRAY_RG071801_HPP

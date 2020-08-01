@@ -5,8 +5,8 @@
 
 // See http://www.boost.org/libs/utility/shared_container_iterator.html for documentation.
 
-#ifndef BOOST_SHARED_CONTAINER_ITERATOR_HPP
-#define BOOST_SHARED_CONTAINER_ITERATOR_HPP
+#ifndef SHARED_CONTAINER_ITERATOR_RG08102002_HPP
+#define SHARED_CONTAINER_ITERATOR_RG08102002_HPP
 
 #include "boost/iterator_adaptors.hpp"
 #include "boost/shared_ptr.hpp"
@@ -66,4 +66,4 @@ using iterators::make_shared_container_range;
 
 } // namespace boost
 
-#endif
+#endif  // SHARED_CONTAINER_ITERATOR_RG08102002_HPP

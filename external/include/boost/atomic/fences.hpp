@@ -36,24 +36,24 @@ namespace atomics {
 #if BOOST_ATOMIC_THREAD_FENCE > 0
 BOOST_FORCEINLINE void atomic_thread_fence(memory_order order) BOOST_NOEXCEPT
 {
-    atomics::detail::thread_fence(order);
+    detail::thread_fence(order);
 }
 #else
 BOOST_FORCEINLINE void atomic_thread_fence(memory_order) BOOST_NOEXCEPT
 {
-    atomics::detail::lock_pool::thread_fence();
+    detail::lockpool::thread_fence();
 }
 #endif
 
 #if BOOST_ATOMIC_SIGNAL_FENCE > 0
 BOOST_FORCEINLINE void atomic_signal_fence(memory_order order) BOOST_NOEXCEPT
 {
-    atomics::detail::signal_fence(order);
+    detail::signal_fence(order);
 }
 #else
 BOOST_FORCEINLINE void atomic_signal_fence(memory_order) BOOST_NOEXCEPT
 {
-    atomics::detail::lock_pool::signal_fence();
+    detail::lockpool::signal_fence();
 }
 #endif
 

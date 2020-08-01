@@ -10,9 +10,6 @@
 #define BOOST_THREAD_SERIAL_EXECUTOR_HPP
 
 #include <boost/thread/detail/config.hpp>
-#if defined BOOST_THREAD_PROVIDES_FUTURE_CONTINUATION && defined BOOST_THREAD_PROVIDES_EXECUTORS && defined BOOST_THREAD_USES_MOVE
-
-#include <exception>
 #include <boost/thread/detail/delete.hpp>
 #include <boost/thread/detail/move.hpp>
 #include <boost/thread/concurrent_queues/sync_queue.hpp>
@@ -22,11 +19,6 @@
 #include <boost/thread/scoped_thread.hpp>
 
 #include <boost/config/abi_prefix.hpp>
-
-#if defined(BOOST_MSVC)
-# pragma warning(push)
-# pragma warning(disable: 4355) // 'this' : used in base member initializer list
-#endif
 
 namespace boost
 {
@@ -219,11 +211,6 @@ namespace executors
 using executors::serial_executor;
 }
 
-#if defined(BOOST_MSVC)
-# pragma warning(pop)
-#endif
-
 #include <boost/config/abi_suffix.hpp>
 
-#endif
 #endif

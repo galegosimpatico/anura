@@ -1,6 +1,6 @@
 // Boost.Geometry (aka GGL, Generic Geometry Library)
 
-// Copyright (c) 2014-2018, Oracle and/or its affiliates.
+// Copyright (c) 2014-2017, Oracle and/or its affiliates.
 
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
@@ -13,9 +13,7 @@
 
 
 #include <boost/geometry/algorithms/detail/equals/point_point.hpp>
-#include <boost/geometry/algorithms/not_implemented.hpp>
-
-#include <boost/geometry/policies/compare.hpp>
+#include <boost/geometry/algorithms/detail/relate/less.hpp>
 
 #include <boost/geometry/util/has_nan_coordinate.hpp>
 #include <boost/geometry/util/range.hpp>
@@ -29,7 +27,6 @@ namespace detail { namespace relate {
 // TODO: change the name for e.g. something with the word "exterior"
 
 template <typename Geometry,
-          typename EqPPStrategy,
           typename Tag = typename geometry::tag<Geometry>::type>
 struct topology_check
     : not_implemented<Tag>
@@ -49,8 +46,8 @@ struct topology_check
 //    topology_check(Point const&, IgnoreBoundaryPoint const&) {}
 //};
 
-template <typename Linestring, typename EqPPStrategy>
-struct topology_check<Linestring, EqPPStrategy, linestring_tag>
+template <typename Linestring>
+struct topology_check<Linestring, linestring_tag>
 {
     static const char interior = '1';
     static const char boundary = '0';
@@ -102,9 +99,7 @@ private:
         m_has_interior = count > 0;
         // NOTE: Linestring with all points equal is treated as 1d linear ring
         m_has_boundary = count > 1
-            && ! detail::equals::equals_point_point(range::front(m_ls),
-                                                    range::back(m_ls),
-                                                    EqPPStrategy());
+                && ! detail::equals::equals_point_point(range::front(m_ls), range::back(m_ls));
 
         m_is_initialized = true;
     }
@@ -116,8 +111,8 @@ private:
     mutable bool m_has_boundary;
 };
 
-template <typename MultiLinestring, typename EqPPStrategy>
-struct topology_check<MultiLinestring, EqPPStrategy, multi_linestring_tag>
+template <typename MultiLinestring>
+struct topology_check<MultiLinestring, multi_linestring_tag>
 {
     static const char interior = '1';
     static const char boundary = '0';
@@ -163,8 +158,6 @@ struct topology_check<MultiLinestring, EqPPStrategy, multi_linestring_tag>
     }
 
 private:
-    typedef geometry::less<void, -1, typename EqPPStrategy::cs_tag> less_type;
-
     void init() const
     {
         if (m_is_initialized)
@@ -198,7 +191,7 @@ private:
                 point_reference back_pt = range::back(ls);
 
                 // don't store boundaries of linear rings, this doesn't change anything
-                if (! equals::equals_point_point(front_pt, back_pt, EqPPStrategy()))
+                if (! equals::equals_point_point(front_pt, back_pt))
                 {
                     // do not add points containing NaN coordinates
                     // because they cannot be reasonably compared, e.g. with MSVC
@@ -221,7 +214,7 @@ private:
 
         if (! m_endpoints.empty() )
         {
-            std::sort(m_endpoints.begin(), m_endpoints.end(), less_type());
+            std::sort(m_endpoints.begin(), m_endpoints.end(), relate::less());
             m_has_boundary = find_odd_count(m_endpoints.begin(), m_endpoints.end());
         }
 
@@ -231,7 +224,7 @@ private:
     template <typename It, typename Point>
     static inline std::size_t count_equal(It first, It last, Point const& point)
     {
-        std::pair<It, It> rng = std::equal_range(first, last, point, less_type());
+        std::pair<It, It> rng = std::equal_range(first, last, point, relate::less());
         return (std::size_t)std::distance(rng.first, rng.second);
     }
 
@@ -267,7 +260,7 @@ private:
         for ( ; first != last ; ++first, ++prev )
         {
             // the end of the equal points subrange
-            if ( ! equals::equals_point_point(*first, *prev, EqPPStrategy()) )
+            if ( ! equals::equals_point_point(*first, *prev) )
             {
                 // odd count -> boundary
                 if ( count % 2 != 0 )
@@ -304,35 +297,40 @@ private:
     mutable std::vector<point_type> m_endpoints;
 };
 
-struct topology_check_areal
+template <typename Ring>
+struct topology_check<Ring, ring_tag>
 {
     static const char interior = '2';
     static const char boundary = '1';
+
+    topology_check(Ring const&) {}
 
     static bool has_interior() { return true; }
     static bool has_boundary() { return true; }
 };
 
-template <typename Ring, typename EqPPStrategy>
-struct topology_check<Ring, EqPPStrategy, ring_tag>
-    : topology_check_areal
+template <typename Polygon>
+struct topology_check<Polygon, polygon_tag>
 {
-    topology_check(Ring const&) {}
-};
-
-template <typename Polygon, typename EqPPStrategy>
-struct topology_check<Polygon, EqPPStrategy, polygon_tag>
-    : topology_check_areal
-{
-    topology_check(Polygon const&) {}
-};
-
-template <typename MultiPolygon, typename EqPPStrategy>
-struct topology_check<MultiPolygon, EqPPStrategy, multi_polygon_tag>
-    : topology_check_areal
-{
-    topology_check(MultiPolygon const&) {}
+    static const char interior = '2';
+    static const char boundary = '1';
     
+    topology_check(Polygon const&) {}
+
+    static bool has_interior() { return true; }
+    static bool has_boundary() { return true; }
+};
+
+template <typename MultiPolygon>
+struct topology_check<MultiPolygon, multi_polygon_tag>
+{
+    static const char interior = '2';
+    static const char boundary = '1';
+    
+    topology_check(MultiPolygon const&) {}
+
+    static bool has_interior() { return true; }
+    static bool has_boundary() { return true; }
     template <typename Point>
     static bool check_boundary_point(Point const& ) { return true; }
 };

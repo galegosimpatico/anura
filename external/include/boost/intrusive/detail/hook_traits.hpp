@@ -57,34 +57,26 @@ struct bhtraits_base
 
    BOOST_INTRUSIVE_FORCEINLINE static pointer to_value_ptr(const node_ptr & n)
    {
-      pointer p = pointer_traits<pointer>::pointer_to
+      return pointer_traits<pointer>::pointer_to
          (static_cast<reference>(static_cast<node_holder_reference>(*n)));
-      BOOST_ASSERT(!!p);
-      return p;
    }
 
    BOOST_INTRUSIVE_FORCEINLINE static const_pointer to_value_ptr(const const_node_ptr & n)
    {
-      const_pointer p = pointer_traits<const_pointer>::pointer_to
+      return pointer_traits<const_pointer>::pointer_to
          (static_cast<const_reference>(static_cast<const_node_holder_reference>(*n)));
-      BOOST_ASSERT(!!p);
-      return p;
    }
 
    BOOST_INTRUSIVE_FORCEINLINE static node_ptr to_node_ptr(reference value)
    {
-      node_ptr p = pointer_traits<node_ptr>::pointer_to
+      return pointer_traits<node_ptr>::pointer_to
          (static_cast<node_reference>(static_cast<node_holder_reference>(value)));
-      BOOST_ASSERT(!!p);
-      return p;
    }
 
    BOOST_INTRUSIVE_FORCEINLINE static const_node_ptr to_node_ptr(const_reference value)
    {
-      const_node_ptr p = pointer_traits<const_node_ptr>::pointer_to
+      return pointer_traits<const_node_ptr>::pointer_to
          (static_cast<const_node_reference>(static_cast<const_node_holder_reference>(value)));
-      BOOST_ASSERT(!!p);
-      return p;
    }
 };
 

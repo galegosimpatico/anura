@@ -47,8 +47,9 @@ namespace boost { namespace fusion
 
         Sequence& seq;
 
+    private:
         // silence MSVC warning C4512: assignment operator could not be generated
-        BOOST_DELETED_FUNCTION(nview_iterator& operator= (nview_iterator const&))
+        nview_iterator& operator= (nview_iterator const&);
     };
 
 }}

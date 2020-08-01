@@ -161,52 +161,52 @@ class generic_hook
       < NodeTraits
       , Tag, LinkMode, BaseHookType>                  hooktags;
 
-   BOOST_INTRUSIVE_FORCEINLINE node_ptr this_ptr()
+   node_ptr this_ptr()
    {  return pointer_traits<node_ptr>::pointer_to(static_cast<node&>(*this)); }
 
-   BOOST_INTRUSIVE_FORCEINLINE const_node_ptr this_ptr() const
+   const_node_ptr this_ptr() const
    {  return pointer_traits<const_node_ptr>::pointer_to(static_cast<const node&>(*this)); }
 
    public:
    /// @endcond
 
-   BOOST_INTRUSIVE_FORCEINLINE generic_hook()
+   generic_hook()
    {
       if(hooktags::safemode_or_autounlink){
          node_algorithms::init(this->this_ptr());
       }
    }
 
-   BOOST_INTRUSIVE_FORCEINLINE generic_hook(const generic_hook& )
+   generic_hook(const generic_hook& )
    {
       if(hooktags::safemode_or_autounlink){
          node_algorithms::init(this->this_ptr());
       }
    }
 
-   BOOST_INTRUSIVE_FORCEINLINE generic_hook& operator=(const generic_hook& )
+   generic_hook& operator=(const generic_hook& )
    {  return *this;  }
 
-   BOOST_INTRUSIVE_FORCEINLINE ~generic_hook()
+   ~generic_hook()
    {
       destructor_impl
          (*this, detail::link_dispatch<hooktags::link_mode>());
    }
 
-   BOOST_INTRUSIVE_FORCEINLINE void swap_nodes(generic_hook &other)
+   void swap_nodes(generic_hook &other)
    {
       node_algorithms::swap_nodes
          (this->this_ptr(), other.this_ptr());
    }
 
-   BOOST_INTRUSIVE_FORCEINLINE bool is_linked() const
+   bool is_linked() const
    {
       //is_linked() can be only used in safe-mode or auto-unlink
       BOOST_STATIC_ASSERT(( hooktags::safemode_or_autounlink ));
       return !node_algorithms::unique(this->this_ptr());
    }
 
-   BOOST_INTRUSIVE_FORCEINLINE void unlink()
+   void unlink()
    {
       BOOST_STATIC_ASSERT(( (int)hooktags::link_mode == (int)auto_unlink ));
       node_ptr n(this->this_ptr());

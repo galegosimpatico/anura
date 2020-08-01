@@ -19,7 +19,7 @@
 #ifndef BOOST_REGEX_WORKAROUND_HPP
 #define BOOST_REGEX_WORKAROUND_HPP
 
-#include <boost/config.hpp>
+
 #include <new>
 #include <cstring>
 #include <cstdlib>
@@ -198,10 +198,9 @@ namespace boost{ namespace BOOST_REGEX_DETAIL_NS{
       const char *strSource 
    )
    {
-	  std::size_t lenSourceWithNull = std::strlen(strSource) + 1;
-	  if (lenSourceWithNull > sizeInBytes)
+      if(std::strlen(strSource)+1 > sizeInBytes)
          return 1;
-	  std::memcpy(strDestination, strSource, lenSourceWithNull);
+      std::strcpy(strDestination, strSource);
       return 0;
    }
    inline std::size_t strcat_s(
@@ -210,11 +209,9 @@ namespace boost{ namespace BOOST_REGEX_DETAIL_NS{
       const char *strSource 
    )
    {
-	  std::size_t lenSourceWithNull = std::strlen(strSource) + 1;
-	  std::size_t lenDestination = std::strlen(strDestination);
-	  if (lenSourceWithNull + lenDestination > sizeInBytes)
+      if(std::strlen(strSource) + std::strlen(strDestination) + 1 > sizeInBytes)
          return 1;
-	  std::memcpy(strDestination + lenDestination, strSource, lenSourceWithNull);
+      std::strcat(strDestination, strSource);
       return 0;
    }
 

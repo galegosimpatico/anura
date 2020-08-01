@@ -8,8 +8,8 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#ifndef BOOST_SPIRIT_CLASSIC_TREE_IMPL_TREE_TO_XML_IPP
-#define BOOST_SPIRIT_CLASSIC_TREE_IMPL_TREE_TO_XML_IPP
+#if !defined(TREE_TO_XML_IPP)
+#define TREE_TO_XML_IPP
 
 #include <cstdio>
 #include <cstdarg>
@@ -524,4 +524,4 @@ BOOST_SPIRIT_CLASSIC_NAMESPACE_END
 #undef BOOST_SPIRIT_OSSTREAM
 #undef BOOST_SPIRIT_GETSTRING
 
-#endif
+#endif // !defined(PARSE_TREE_XML_HPP)

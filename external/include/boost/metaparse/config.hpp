@@ -41,15 +41,7 @@
     ) \
     && (!defined BOOST_GCC || BOOST_GCC >= 40700)
 
-#    if !defined BOOST_NO_CXX14_CONSTEXPR
-
-#      define BOOST_METAPARSE_STD 2014
-
-#    else
-
-#      define BOOST_METAPARSE_STD 2011
-
-#    endif
+#    define BOOST_METAPARSE_STD 2011
 
 #  else
 

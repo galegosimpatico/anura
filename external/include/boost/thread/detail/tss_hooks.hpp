@@ -10,7 +10,7 @@
 
 #include <boost/config/abi_prefix.hpp>
 
-#if defined(BOOST_THREAD_WIN32)
+#if defined(BOOST_HAS_WINTHREADS)
 
 namespace boost
 {
@@ -58,7 +58,7 @@ namespace boost
             //it to be linked into the Boost.Threads library.
 }
 
-#endif //defined(BOOST_THREAD_WIN32)
+#endif //defined(BOOST_HAS_WINTHREADS)
 
 #include <boost/config/abi_suffix.hpp>
 

@@ -15,13 +15,15 @@
 # define BOOST_SYMBOL_VISIBLE
 #endif
 
-#if defined(BOOST_ALL_DYN_LINK) || defined(BOOST_LOCALE_DYN_LINK)
-#   ifdef BOOST_LOCALE_SOURCE
-#       define BOOST_LOCALE_DECL BOOST_SYMBOL_EXPORT
-#   else
-#       define BOOST_LOCALE_DECL BOOST_SYMBOL_IMPORT
-#   endif  // BOOST_LOCALE_SOURCE
-#endif  // DYN_LINK
+#ifdef BOOST_HAS_DECLSPEC 
+#   if defined(BOOST_ALL_DYN_LINK) || defined(BOOST_LOCALE_DYN_LINK)
+#       ifdef BOOST_LOCALE_SOURCE
+#           define BOOST_LOCALE_DECL BOOST_SYMBOL_EXPORT
+#       else
+#           define BOOST_LOCALE_DECL BOOST_SYMBOL_IMPORT
+#       endif  // BOOST_LOCALE_SOURCE
+#   endif  // DYN_LINK
+#endif  // BOOST_HAS_DECLSPEC
 
 #ifndef BOOST_LOCALE_DECL
 #   define BOOST_LOCALE_DECL

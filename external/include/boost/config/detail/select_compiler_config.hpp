@@ -39,7 +39,8 @@
 //  Intel
 #   define BOOST_COMPILER_CONFIG "boost/config/compiler/intel.hpp"
 
-#elif defined __clang__ && !defined(__ibmxl__)
+#elif defined __clang__ && !defined(__CUDACC__) && !defined(__ibmxl__)
+// when using clang and cuda at same time, you want to appear as gcc
 //  Clang C++ emulates GCC, so it has to appear early.
 #   define BOOST_COMPILER_CONFIG "boost/config/compiler/clang.hpp"
 
@@ -50,10 +51,6 @@
 #elif defined __DCC__
 //  Wind River Diab C++
 #   define BOOST_COMPILER_CONFIG "boost/config/compiler/diab.hpp"
-
-#elif defined(__PGI)
-//  Portland Group Inc.
-#   define BOOST_COMPILER_CONFIG "boost/config/compiler/pgi.hpp"
 
 # elif defined(__GNUC__) && !defined(__ibmxl__)
 //  GNU C++:
@@ -110,6 +107,10 @@
 #elif defined(__IBMCPP__)
 //  IBM Visual Age or IBM XL C/C++ for Linux (Big Endian)
 #   define BOOST_COMPILER_CONFIG "boost/config/compiler/vacpp.hpp"
+
+#elif defined(__PGI)
+//  Portland Group Inc.
+#   define BOOST_COMPILER_CONFIG "boost/config/compiler/pgi.hpp"
 
 #elif defined _MSC_VER
 //  Microsoft Visual C++

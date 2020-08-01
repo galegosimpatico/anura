@@ -34,19 +34,13 @@ namespace unit_test {
 class test_case_counter : public test_tree_visitor {
 public:
     // Constructor
-    // @param ignore_disabled ignore the status when counting
-    test_case_counter(bool ignore_status = false)
-    : p_count( 0 )
-    , m_ignore_status(ignore_status)
-    {}
+    test_case_counter() : p_count( 0 ) {}
 
     BOOST_READONLY_PROPERTY( counter_t, (test_case_counter)) p_count;
 private:
     // test tree visitor interface
-    virtual void    visit( test_case const& tc )                { if( m_ignore_status || tc.is_enabled() ) ++p_count.value; }
-    virtual bool    test_suite_start( test_suite const& ts )    { return m_ignore_status || ts.is_enabled(); }
-  
-    bool m_ignore_status;
+    virtual void    visit( test_case const& tc )                { if( tc.is_enabled() ) ++p_count.value; }
+    virtual bool    test_suite_start( test_suite const& ts )    { return ts.is_enabled(); }
 };
 
 } // namespace unit_test

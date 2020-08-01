@@ -8,9 +8,6 @@
 #ifndef BOOST_THREAD_EXECUTORS_SCHEDULED_THREAD_POOL_HPP
 #define BOOST_THREAD_EXECUTORS_SCHEDULED_THREAD_POOL_HPP
 
-#include <boost/thread/detail/config.hpp>
-#if defined BOOST_THREAD_PROVIDES_FUTURE_CONTINUATION && defined BOOST_THREAD_PROVIDES_EXECUTORS && defined BOOST_THREAD_USES_MOVE
-
 #include <boost/thread/executors/detail/scheduled_executor_base.hpp>
 
 namespace boost
@@ -35,7 +32,6 @@ namespace executors
     ~scheduled_thread_pool()
     {
       this->close();
-      _workers.interrupt_all();
       _workers.join_all();
     }
 
@@ -48,6 +44,5 @@ namespace executors
 using executors::scheduled_thread_pool;
 
 } //end boost
-#endif
 #endif
 

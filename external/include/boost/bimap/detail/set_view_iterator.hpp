@@ -22,7 +22,6 @@
 
 #ifndef BOOST_BIMAP_DISABLE_SERIALIZATION 
   #include <boost/serialization/nvp.hpp>
-  #include <boost/serialization/split_member.hpp>
 #endif // BOOST_BIMAP_DISABLE_SERIALIZATION
 
 #include <boost/iterator/detail/enable_if.hpp>

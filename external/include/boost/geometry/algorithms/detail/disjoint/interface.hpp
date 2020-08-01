@@ -228,11 +228,6 @@ inline bool disjoint(Geometry1 const& geometry1,
 \return \return_check2{are disjoint}
 
 \qbk{[include reference/algorithms/disjoint.qbk]}
-\qbk{
-[heading Examples]
-[disjoint]
-[disjoint_output]
-}
 */
 template <typename Geometry1, typename Geometry2>
 inline bool disjoint(Geometry1 const& geometry1,

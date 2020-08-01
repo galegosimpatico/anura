@@ -2,8 +2,8 @@
 
 // Copyright (c) 2007-2015 Barend Gehrels, Amsterdam, the Netherlands.
 
-// This file was modified by Oracle on 2014, 2020.
-// Modifications copyright (c) 2014-2020, Oracle and/or its affiliates.
+// This file was modified by Oracle on 2014.
+// Modifications copyright (c) 2014-2015, Oracle and/or its affiliates.
 
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
@@ -123,8 +123,7 @@ template
 <
     bool ReverseAreal,
     typename LineStringOut,
-    overlay_type OverlayType,
-    bool FollowIsolatedPoints
+    overlay_type OverlayType
 >
 struct intersection_of_multi_linestring_with_areal
 {
@@ -148,7 +147,7 @@ struct intersection_of_multi_linestring_with_areal
         {
             out = intersection_of_linestring_with_areal
                 <
-                    ReverseAreal, LineStringOut, OverlayType, FollowIsolatedPoints
+                    ReverseAreal, LineStringOut, OverlayType
                 >::apply(*it, areal, robust_policy, out, strategy);
         }
 
@@ -162,8 +161,7 @@ template
 <
     bool ReverseAreal,
     typename LineStringOut,
-    overlay_type OverlayType,
-    bool FollowIsolatedPoints
+    overlay_type OverlayType
 >
 struct intersection_of_areal_with_multi_linestring
 {
@@ -180,7 +178,7 @@ struct intersection_of_areal_with_multi_linestring
     {
         return intersection_of_multi_linestring_with_areal
             <
-                ReverseAreal, LineStringOut, OverlayType, FollowIsolatedPoints
+                ReverseAreal, LineStringOut, OverlayType
             >::apply(ml, areal, robust_policy, out, strategy);
     }
 };
@@ -230,16 +228,16 @@ template
     typename MultiLinestring1, typename MultiLinestring2,
     typename GeometryOut,
     overlay_type OverlayType,
-    bool Reverse1, bool Reverse2
+    bool Reverse1, bool Reverse2, bool ReverseOut
 >
 struct intersection_insert
     <
         MultiLinestring1, MultiLinestring2,
         GeometryOut,
         OverlayType,
-        Reverse1, Reverse2,
+        Reverse1, Reverse2, ReverseOut,
         multi_linestring_tag, multi_linestring_tag, point_tag,
-        linear_tag, linear_tag, pointlike_tag
+        false, false, false
     > : detail::intersection::intersection_multi_linestring_multi_linestring_point
             <
                 GeometryOut
@@ -252,16 +250,16 @@ template
     typename Linestring, typename MultiLinestring,
     typename GeometryOut,
     overlay_type OverlayType,
-    bool Reverse1, bool Reverse2
+    bool Reverse1, bool Reverse2, bool ReverseOut
 >
 struct intersection_insert
     <
         Linestring, MultiLinestring,
         GeometryOut,
         OverlayType,
-        Reverse1, Reverse2,
+        Reverse1, Reverse2, ReverseOut,
         linestring_tag, multi_linestring_tag, point_tag,
-        linear_tag, linear_tag, pointlike_tag
+        false, false, false
     > : detail::intersection::intersection_linestring_multi_linestring_point
             <
                 GeometryOut
@@ -274,16 +272,16 @@ template
     typename MultiLinestring, typename Box,
     typename GeometryOut,
     overlay_type OverlayType,
-    bool Reverse1, bool Reverse2
+    bool Reverse1, bool Reverse2, bool ReverseOut
 >
 struct intersection_insert
     <
         MultiLinestring, Box,
         GeometryOut,
         OverlayType,
-        Reverse1, Reverse2,
+        Reverse1, Reverse2, ReverseOut,
         multi_linestring_tag, box_tag, linestring_tag,
-        linear_tag, areal_tag, linear_tag
+        false, true, false
     > : detail::intersection::clip_multi_linestring
             <
                 GeometryOut
@@ -296,22 +294,21 @@ template
     typename Linestring, typename MultiPolygon,
     typename GeometryOut,
     overlay_type OverlayType,
-    bool ReverseLinestring, bool ReverseMultiPolygon
+    bool ReverseLinestring, bool ReverseMultiPolygon, bool ReverseOut
 >
 struct intersection_insert
     <
         Linestring, MultiPolygon,
         GeometryOut,
         OverlayType,
-        ReverseLinestring, ReverseMultiPolygon,
+        ReverseLinestring, ReverseMultiPolygon, ReverseOut,
         linestring_tag, multi_polygon_tag, linestring_tag,
-        linear_tag, areal_tag, linear_tag
+        false, true, false
     > : detail::intersection::intersection_of_linestring_with_areal
             <
                 ReverseMultiPolygon,
                 GeometryOut,
-                OverlayType,
-                false
+                OverlayType
             >
 {};
 
@@ -323,22 +320,21 @@ template
     typename Polygon, typename MultiLinestring,
     typename GeometryOut,
     overlay_type OverlayType,
-    bool ReversePolygon, bool ReverseMultiLinestring
+    bool ReversePolygon, bool ReverseMultiLinestring, bool ReverseOut
 >
 struct intersection_insert
     <
         Polygon, MultiLinestring,
         GeometryOut,
         OverlayType,
-        ReversePolygon, ReverseMultiLinestring,
+        ReversePolygon, ReverseMultiLinestring, ReverseOut,
         polygon_tag, multi_linestring_tag, linestring_tag,
-        areal_tag, linear_tag, linear_tag
+        true, false, false
     > : detail::intersection::intersection_of_areal_with_multi_linestring
             <
                 ReversePolygon,
                 GeometryOut,
-                OverlayType,
-                false
+                OverlayType
             >
 {};
 
@@ -348,22 +344,21 @@ template
     typename MultiLinestring, typename Ring,
     typename GeometryOut,
     overlay_type OverlayType,
-    bool ReverseMultiLinestring, bool ReverseRing
+    bool ReverseMultiLinestring, bool ReverseRing, bool ReverseOut
 >
 struct intersection_insert
     <
         MultiLinestring, Ring,
         GeometryOut,
         OverlayType,
-        ReverseMultiLinestring, ReverseRing,
+        ReverseMultiLinestring, ReverseRing, ReverseOut,
         multi_linestring_tag, ring_tag, linestring_tag,
-        linear_tag, areal_tag, linear_tag
+        false, true, false
     > : detail::intersection::intersection_of_multi_linestring_with_areal
             <
                 ReverseRing,
                 GeometryOut,
-                OverlayType,
-                false
+                OverlayType
             >
 {};
 
@@ -372,22 +367,21 @@ template
     typename MultiLinestring, typename Polygon,
     typename GeometryOut,
     overlay_type OverlayType,
-    bool ReverseMultiLinestring, bool ReversePolygon
+    bool ReverseMultiLinestring, bool ReverseRing, bool ReverseOut
 >
 struct intersection_insert
     <
         MultiLinestring, Polygon,
         GeometryOut,
         OverlayType,
-        ReverseMultiLinestring, ReversePolygon,
+        ReverseMultiLinestring, ReverseRing, ReverseOut,
         multi_linestring_tag, polygon_tag, linestring_tag,
-        linear_tag, areal_tag, linear_tag
+        false, true, false
     > : detail::intersection::intersection_of_multi_linestring_with_areal
             <
-                ReversePolygon,
+                ReverseRing,
                 GeometryOut,
-                OverlayType,
-                false
+                OverlayType
             >
 {};
 
@@ -398,126 +392,22 @@ template
     typename MultiLinestring, typename MultiPolygon,
     typename GeometryOut,
     overlay_type OverlayType,
-    bool ReverseMultiLinestring, bool ReverseMultiPolygon
+    bool ReverseMultiLinestring, bool ReverseMultiPolygon, bool ReverseOut
 >
 struct intersection_insert
     <
         MultiLinestring, MultiPolygon,
         GeometryOut,
         OverlayType,
-        ReverseMultiLinestring, ReverseMultiPolygon,
+        ReverseMultiLinestring, ReverseMultiPolygon, ReverseOut,
         multi_linestring_tag, multi_polygon_tag, linestring_tag,
-        linear_tag, areal_tag, linear_tag
+        false, true, false
     > : detail::intersection::intersection_of_multi_linestring_with_areal
             <
                 ReverseMultiPolygon,
                 GeometryOut,
-                OverlayType,
-                false
+                OverlayType
             >
-{};
-
-
-
-template
-<
-    typename MultiLinestring, typename Ring,
-    typename TupledOut,
-    overlay_type OverlayType,
-    bool ReverseMultiLinestring, bool ReverseRing
->
-struct intersection_insert
-    <
-        MultiLinestring, Ring,
-        TupledOut,
-        OverlayType,
-        ReverseMultiLinestring, ReverseRing,
-        multi_linestring_tag, ring_tag, detail::intersection::tupled_output_tag,
-        linear_tag, areal_tag, detail::intersection::tupled_output_tag
-    > : detail::intersection::intersection_of_multi_linestring_with_areal
-            <
-                ReverseRing,
-                TupledOut,
-                OverlayType,
-                true
-            >
-      , detail::intersection::expect_output_pl<MultiLinestring, Ring, TupledOut>
-{};
-
-
-template
-<
-    typename MultiLinestring, typename Polygon,
-    typename TupledOut,
-    overlay_type OverlayType,
-    bool ReverseMultiLinestring, bool ReversePolygon
->
-struct intersection_insert
-    <
-        MultiLinestring, Polygon,
-        TupledOut,
-        OverlayType,
-        ReverseMultiLinestring, ReversePolygon,
-        multi_linestring_tag, polygon_tag, detail::intersection::tupled_output_tag,
-        linear_tag, areal_tag, detail::intersection::tupled_output_tag
-    > : detail::intersection::intersection_of_multi_linestring_with_areal
-            <
-                ReversePolygon,
-                TupledOut,
-                OverlayType,
-                true
-            >
-    , detail::intersection::expect_output_pl<MultiLinestring, Polygon, TupledOut>
-{};
-
-template
-<
-    typename Polygon, typename MultiLinestring,
-    typename TupledOut,
-    overlay_type OverlayType,
-    bool ReversePolygon, bool ReverseMultiLinestring
->
-struct intersection_insert
-    <
-        Polygon, MultiLinestring,
-        TupledOut,
-        OverlayType,
-        ReversePolygon, ReverseMultiLinestring,
-        polygon_tag, multi_linestring_tag, detail::intersection::tupled_output_tag,
-        areal_tag, linear_tag, detail::intersection::tupled_output_tag
-    > : detail::intersection::intersection_of_areal_with_multi_linestring
-            <
-                ReversePolygon,
-                TupledOut,
-                OverlayType,
-                true
-            >
-    , detail::intersection::expect_output_pl<Polygon, MultiLinestring, TupledOut>
-{};
-
-template
-<
-    typename MultiLinestring, typename MultiPolygon,
-    typename TupledOut,
-    overlay_type OverlayType,
-    bool ReverseMultiLinestring, bool ReverseMultiPolygon
->
-struct intersection_insert
-    <
-        MultiLinestring, MultiPolygon,
-        TupledOut,
-        OverlayType,
-        ReverseMultiLinestring, ReverseMultiPolygon,
-        multi_linestring_tag, multi_polygon_tag, detail::intersection::tupled_output_tag,
-        linear_tag, areal_tag, detail::intersection::tupled_output_tag
-    > : detail::intersection::intersection_of_multi_linestring_with_areal
-            <
-                ReverseMultiPolygon,
-                TupledOut,
-                OverlayType,
-                true
-            >
-    , detail::intersection::expect_output_pl<MultiLinestring, MultiPolygon, TupledOut>
 {};
 
 

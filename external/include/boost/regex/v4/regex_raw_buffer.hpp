@@ -138,12 +138,12 @@ public:
 
    size_type BOOST_REGEX_CALL size()
    {
-      return size_type(end - start);
+      return end - start;
    }
 
    size_type BOOST_REGEX_CALL capacity()
    {
-      return size_type(last - start);
+      return last - start;
    }
 
    void* BOOST_REGEX_CALL data()const
@@ -153,7 +153,7 @@ public:
 
    size_type BOOST_REGEX_CALL index(void* ptr)
    {
-      return size_type(static_cast<pointer>(ptr) - static_cast<pointer>(data()));
+      return static_cast<pointer>(ptr) - static_cast<pointer>(data());
    }
 
    void BOOST_REGEX_CALL clear()

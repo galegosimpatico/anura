@@ -7,8 +7,8 @@
 // documentation.
 //
 
-#ifndef BOOST_PROPERTY_MAP_VECTOR_PROPERTY_MAP_HPP
-#define BOOST_PROPERTY_MAP_VECTOR_PROPERTY_MAP_HPP
+#ifndef VECTOR_PROPERTY_MAP_HPP_VP_2003_03_04
+#define VECTOR_PROPERTY_MAP_HPP_VP_2003_03_04
 
 #include <boost/property_map/property_map.hpp>
 #include <boost/shared_ptr.hpp>

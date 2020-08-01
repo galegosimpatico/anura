@@ -45,7 +45,7 @@ public:
     explicit pull_coroutine( Fn &&);
 
     template< typename StackAllocator, typename Fn >
-    pull_coroutine( StackAllocator &&, Fn &&);
+    pull_coroutine( StackAllocator, Fn &&);
 
     ~pull_coroutine();
 
@@ -55,7 +55,9 @@ public:
     pull_coroutine( pull_coroutine &&) noexcept;
 
     pull_coroutine & operator=( pull_coroutine && other) noexcept {
-        std::swap( cb_, other.cb_);
+        if ( this == & other) return * this;
+        cb_ = other.cb_;
+        other.cb_ = nullptr;
         return * this;
     }
 
@@ -67,7 +69,7 @@ public:
 
     T get() noexcept;
 
-    class iterator {
+    class iterator : public std::iterator< std::input_iterator_tag, typename std::remove_reference< T >::type > {
     private:
         pull_coroutine< T > *   c_{ nullptr };
 
@@ -87,20 +89,24 @@ public:
         }
 
     public:
-        typedef std::input_iterator_tag iterator_category;
-        typedef typename std::remove_reference< T >::type value_type;
-        typedef std::ptrdiff_t difference_type;
-        typedef value_type * pointer;
-        typedef value_type & reference;
-
-        typedef pointer   pointer_t;
-        typedef reference reference_t;
+        typedef typename iterator::pointer pointer_t;
+        typedef typename iterator::reference reference_t;
 
         iterator() noexcept = default;
 
         explicit iterator( pull_coroutine< T > * c) noexcept :
             c_{ c } {
             fetch_();
+        }
+
+        iterator( iterator const& other) noexcept :
+            c_{ other.c_ } {
+        }
+
+        iterator & operator=( iterator const& other) noexcept {
+            if ( this == & other) return * this;
+            c_ = other.c_;
+            return * this;
         }
 
         bool operator==( iterator const& other) const noexcept {
@@ -116,9 +122,7 @@ public:
             return * this;
         }
 
-        void operator++( int) {
-            increment_();
-        }
+        iterator operator++( int) = delete;
 
         reference_t operator*() const noexcept {
             return c_->cb_->get();
@@ -153,7 +157,7 @@ public:
     explicit pull_coroutine( Fn &&);
 
     template< typename StackAllocator, typename Fn >
-    pull_coroutine( StackAllocator &&, Fn &&);
+    pull_coroutine( StackAllocator, Fn &&);
 
     ~pull_coroutine();
 
@@ -163,7 +167,9 @@ public:
     pull_coroutine( pull_coroutine &&) noexcept;
 
     pull_coroutine & operator=( pull_coroutine && other) noexcept {
-        std::swap( cb_, other.cb_);
+        if ( this == & other) return * this;
+        cb_ = other.cb_;
+        other.cb_ = nullptr;
         return * this;
     }
 
@@ -175,7 +181,7 @@ public:
 
     T & get() noexcept;
 
-    class iterator {
+    class iterator : public std::iterator< std::input_iterator_tag, typename std::remove_reference< T >::type > {
     private:
         pull_coroutine< T & > *   c_{ nullptr };
 
@@ -195,20 +201,24 @@ public:
         }
 
     public:
-        typedef std::input_iterator_tag iterator_category;
-        typedef typename std::remove_reference< T >::type value_type;
-        typedef std::ptrdiff_t difference_type;
-        typedef value_type * pointer;
-        typedef value_type & reference;
-
-        typedef pointer   pointer_t;
-        typedef reference reference_t;
+        typedef typename iterator::pointer pointer_t;
+        typedef typename iterator::reference reference_t;
 
         iterator() noexcept = default;
 
         explicit iterator( pull_coroutine< T & > * c) noexcept :
             c_{ c } {
             fetch_();
+        }
+
+        iterator( iterator const& other) noexcept :
+            c_{ other.c_ } {
+        }
+
+        iterator & operator=( iterator const& other) noexcept {
+            if ( this == & other) return * this;
+            c_ = other.c_;
+            return * this;
         }
 
         bool operator==( iterator const& other) const noexcept {
@@ -224,9 +234,7 @@ public:
             return * this;
         }
 
-        void operator++( int) {
-            increment_();
-        }
+        iterator operator++( int) = delete;
 
         reference_t operator*() const noexcept {
             return c_->cb_->get();
@@ -259,7 +267,7 @@ public:
     explicit pull_coroutine( Fn &&);
 
     template< typename StackAllocator, typename Fn >
-    pull_coroutine( StackAllocator &&, Fn &&);
+    pull_coroutine( StackAllocator, Fn &&);
 
     ~pull_coroutine();
 
@@ -269,7 +277,9 @@ public:
     pull_coroutine( pull_coroutine &&) noexcept;
 
     pull_coroutine & operator=( pull_coroutine && other) noexcept {
-        std::swap( cb_, other.cb_);
+        if ( this == & other) return * this;
+        cb_ = other.cb_;
+        other.cb_ = nullptr;
         return * this;
     }
 

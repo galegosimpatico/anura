@@ -19,7 +19,6 @@
 #include <boost/spirit/home/support/char_encoding/iso8859_1.hpp>
 #include <boost/spirit/home/support/char_class.hpp>
 #include <boost/mpl/vector.hpp>
-#include <boost/proto/traits.hpp>
 
 #if defined(BOOST_SPIRIT_UNICODE)
 # include <boost/spirit/home/support/char_encoding/unicode.hpp>

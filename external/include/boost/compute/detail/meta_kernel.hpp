@@ -665,8 +665,7 @@ public:
 
     event exec_1d(command_queue &queue,
                   size_t global_work_offset,
-                  size_t global_work_size,
-                  const wait_list &events = wait_list())
+                  size_t global_work_size)
     {
         const context &context = queue.get_context();
 
@@ -676,16 +675,14 @@ public:
                    kernel,
                    global_work_offset,
                    global_work_size,
-                   0,
-                   events
+                   0
                );
     }
 
     event exec_1d(command_queue &queue,
                  size_t global_work_offset,
                  size_t global_work_size,
-                 size_t local_work_size,
-                 const wait_list &events = wait_list())
+                 size_t local_work_size)
     {
         const context &context = queue.get_context();
 
@@ -695,8 +692,7 @@ public:
                    kernel,
                    global_work_offset,
                    global_work_size,
-                   local_work_size,
-                   events
+                   local_work_size
                );
     }
 

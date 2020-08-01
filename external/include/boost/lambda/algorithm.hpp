@@ -684,8 +684,6 @@ struct rotate_copy {
 
 // random_shuffle  ---------------------------------
 
-#ifndef BOOST_NO_CXX98_RANDOM_SHUFFLE
-
 struct random_shuffle {
 
   template <class Args>
@@ -705,7 +703,6 @@ struct random_shuffle {
 
 };
 
-#endif
 
 // partition  ---------------------------------
 

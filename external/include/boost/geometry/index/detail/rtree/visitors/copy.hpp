@@ -4,10 +4,6 @@
 //
 // Copyright (c) 2011-2015 Adam Wulkiewicz, Lodz, Poland.
 //
-// This file was modified by Oracle on 2019.
-// Modifications copyright (c) 2019 Oracle and/or its affiliates.
-// Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
-//
 // Use, modification and distribution is subject to the Boost Software License,
 // Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -15,34 +11,30 @@
 #ifndef BOOST_GEOMETRY_INDEX_DETAIL_RTREE_VISITORS_COPY_HPP
 #define BOOST_GEOMETRY_INDEX_DETAIL_RTREE_VISITORS_COPY_HPP
 
-#include <boost/geometry/index/detail/rtree/node/subtree_destroyer.hpp>
-
 namespace boost { namespace geometry { namespace index {
 
 namespace detail { namespace rtree { namespace visitors {
 
-template <typename MembersHolder>
+template <typename Value, typename Options, typename Translator, typename Box, typename Allocators>
 class copy
-    : public MembersHolder::visitor
+    : public rtree::visitor<Value, typename Options::parameters_type, Box, Allocators, typename Options::node_tag, false>::type
 {
-    typedef typename MembersHolder::allocators_type allocators_type;
-
-    typedef typename MembersHolder::node node;
-    typedef typename MembersHolder::internal_node internal_node;
-    typedef typename MembersHolder::leaf leaf;
-
-    typedef rtree::subtree_destroyer<MembersHolder> subtree_destroyer;
-    typedef typename allocators_type::node_pointer node_pointer;
-
 public:
-    explicit inline copy(allocators_type & allocators)
+    typedef typename rtree::node<Value, typename Options::parameters_type, Box, Allocators, typename Options::node_tag>::type node;
+    typedef typename rtree::internal_node<Value, typename Options::parameters_type, Box, Allocators, typename Options::node_tag>::type internal_node;
+    typedef typename rtree::leaf<Value, typename Options::parameters_type, Box, Allocators, typename Options::node_tag>::type leaf;
+
+    typedef rtree::subtree_destroyer<Value, Options, Translator, Box, Allocators> subtree_destroyer;
+    typedef typename Allocators::node_pointer node_pointer;
+
+    explicit inline copy(Allocators & allocators)
         : result(0)
         , m_allocators(allocators)
     {}
 
     inline void operator()(internal_node & n)
     {
-        node_pointer raw_new_node = rtree::create_node<allocators_type, internal_node>::apply(m_allocators);      // MAY THROW, STRONG (N: alloc)
+        node_pointer raw_new_node = rtree::create_node<Allocators, internal_node>::apply(m_allocators);      // MAY THROW, STRONG (N: alloc)
         subtree_destroyer new_node(raw_new_node, m_allocators);
 
         typedef typename rtree::elements_type<internal_node>::type elements_type;
@@ -69,7 +61,7 @@ public:
 
     inline void operator()(leaf & l)
     {
-        node_pointer raw_new_node = rtree::create_node<allocators_type, leaf>::apply(m_allocators);                // MAY THROW, STRONG (N: alloc)
+        node_pointer raw_new_node = rtree::create_node<Allocators, leaf>::apply(m_allocators);                // MAY THROW, STRONG (N: alloc)
         subtree_destroyer new_node(raw_new_node, m_allocators);
 
         typedef typename rtree::elements_type<leaf>::type elements_type;
@@ -90,7 +82,7 @@ public:
     node_pointer result;
 
 private:
-    allocators_type & m_allocators;
+    Allocators & m_allocators;
 };
 
 }}} // namespace detail::rtree::visitors

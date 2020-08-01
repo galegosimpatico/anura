@@ -2,33 +2,23 @@
 
 // Copyright (c) 2007-2012 Barend Gehrels, Amsterdam, the Netherlands.
 
-// This file was modified by Oracle on 2013, 2014, 2018.
-// Modifications copyright (c) 2013-2018 Oracle and/or its affiliates.
-
-// Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
+// This file was modified by Oracle on 2013, 2014.
+// Modifications copyright (c) 2013-2014 Oracle and/or its affiliates.
 
 // Use, modification and distribution is subject to the Boost Software License,
 // Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+// Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
 #ifndef BOOST_GEOMETRY_ALGORITHMS_DETAIL_RELATE_FOLLOW_HELPERS_HPP
 #define BOOST_GEOMETRY_ALGORITHMS_DETAIL_RELATE_FOLLOW_HELPERS_HPP
-
-#include <vector>
-
-#include <boost/core/ignore_unused.hpp>
-
-#include <boost/geometry/algorithms/detail/overlay/get_turn_info_helpers.hpp>
-#include <boost/geometry/algorithms/detail/overlay/overlay_type.hpp>
-#include <boost/geometry/algorithms/detail/overlay/segment_identifier.hpp>
-#include <boost/geometry/algorithms/detail/relate/boundary_checker.hpp>
-#include <boost/geometry/algorithms/not_implemented.hpp>
 
 #include <boost/geometry/core/assert.hpp>
 
 #include <boost/geometry/util/condition.hpp>
 #include <boost/geometry/util/range.hpp>
+//#include <boost/geometry/algorithms/detail/sub_range.hpp>
 
 namespace boost { namespace geometry
 {
@@ -104,7 +94,7 @@ struct for_each_disjoint_geometry_if<OpId, Geometry, Tag, true>
         BOOST_GEOMETRY_ASSERT(first != last);
 
         const std::size_t count = boost::size(geometry);
-        boost::ignore_unused(count);
+        boost::ignore_unused_variable_warning(count);
 
         // O(I)
         // gather info about turns generated for contained geometries
@@ -341,9 +331,8 @@ private:
     std::vector<point_info> m_other_entry_points; // TODO: use map here or sorted vector?
 };
 
-template <std::size_t OpId, typename Turn, typename EqPPStrategy>
-inline bool turn_on_the_same_ip(Turn const& prev_turn, Turn const& curr_turn,
-                                EqPPStrategy const& strategy)
+template <std::size_t OpId, typename Turn>
+inline bool turn_on_the_same_ip(Turn const& prev_turn, Turn const& curr_turn)
 {
     segment_identifier const& prev_seg_id = prev_turn.operations[OpId].seg_id;
     segment_identifier const& curr_seg_id = curr_turn.operations[OpId].seg_id;
@@ -363,7 +352,7 @@ inline bool turn_on_the_same_ip(Turn const& prev_turn, Turn const& curr_turn,
         return false;
     }
 
-    return detail::equals::equals_point_point(prev_turn.point, curr_turn.point, strategy);
+    return detail::equals::equals_point_point(prev_turn.point, curr_turn.point);
 }
 
 template <boundary_query BoundaryQuery,
@@ -384,7 +373,7 @@ static inline bool is_ip_on_boundary(IntersectionPoint const& ip,
                                      BoundaryChecker & boundary_checker,
                                      segment_identifier const& seg_id)
 {
-    boost::ignore_unused(seg_id);
+    boost::ignore_unused_variable_warning(seg_id);
 
     bool res = false;
 

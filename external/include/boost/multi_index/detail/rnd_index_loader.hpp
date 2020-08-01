@@ -1,4 +1,4 @@
-/* Copyright 2003-2018 Joaquin M Lopez Munoz.
+/* Copyright 2003-2013 Joaquin M Lopez Munoz.
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
  * http://www.boost.org/LICENSE_1_0.txt)
@@ -15,10 +15,11 @@
 
 #include <boost/config.hpp> /* keep it first to prevent nasty warns in MSVC */
 #include <algorithm>
-#include <boost/multi_index/detail/allocator_traits.hpp>
+#include <boost/detail/allocator_utilities.hpp>
 #include <boost/multi_index/detail/auto_space.hpp>
 #include <boost/multi_index/detail/rnd_index_ptr_array.hpp>
 #include <boost/noncopyable.hpp>
+#include <cstddef>
 
 namespace boost{
 
@@ -44,7 +45,7 @@ class random_access_index_loader_base:private noncopyable
 {
 protected:
   typedef random_access_index_node_impl<
-    typename rebind_alloc_for<
+    typename boost::detail::allocator::rebind_to<
       Allocator,
       char
     >::type
@@ -67,9 +68,9 @@ protected:
       node_impl_pointer n=header;
       next(n)=n;
 
-      for(size_type i=ptrs.size();i--;){
+      for(std::size_t i=ptrs.size();i--;){
         n=prev(n);
-        size_type d=position(n);
+        std::size_t d=position(n);
         if(d!=i){
           node_impl_pointer m=prev(next_at(i));
           std::swap(m->up(),n->up());
@@ -93,9 +94,6 @@ protected:
   }
 
 private:
-  typedef allocator_traits<Allocator>      alloc_traits;
-  typedef typename alloc_traits::size_type size_type;
-
   void preprocess()
   {
     if(!preprocessed){
@@ -114,17 +112,17 @@ private:
     }
   }
 
-  size_type position(node_impl_pointer x)const
+  std::size_t position(node_impl_pointer x)const
   {
-    return (size_type)(x->up()-ptrs.begin());
+    return (std::size_t)(x->up()-ptrs.begin());
   }
 
-  node_impl_pointer& next_at(size_type n)const
+  node_impl_pointer& next_at(std::size_t n)const
   {
     return *ptrs.at(n);
   }
 
-  node_impl_pointer& prev_at(size_type n)const
+  node_impl_pointer& prev_at(std::size_t n)const
   {
     return *(prev_spc.data()+n);
   }

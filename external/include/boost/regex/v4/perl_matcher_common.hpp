@@ -36,9 +36,7 @@
 #endif
 #ifdef BOOST_MSVC
 #  pragma warning(push)
-#if BOOST_MSVC < 1910
-#pragma warning(disable:4800)
-#endif
+#  pragma warning(disable: 4800)
 #endif
 
 namespace boost{
@@ -115,11 +113,6 @@ void perl_matcher<BidiIterator, Allocator, traits>::estimate_max_state_count(std
    std::ptrdiff_t states = re.size();
    if(states == 0)
       states = 1;
-   if ((std::numeric_limits<std::ptrdiff_t>::max)() / states < states)
-   {
-      max_state_count = (std::min)((std::ptrdiff_t)BOOST_REGEX_MAX_STATE_COUNT, (std::numeric_limits<std::ptrdiff_t>::max)() - 2);
-      return;
-   }
    states *= states;
    if((std::numeric_limits<std::ptrdiff_t>::max)() / dist < states)
    {
@@ -478,14 +471,12 @@ bool perl_matcher<BidiIterator, Allocator, traits>::match_word_boundary()
    }
    else
    {
-      if (m_match_flags & match_not_eow)
-         return false;
-      b = false;
+      b = (m_match_flags & match_not_eow) ? true : false;
    }
    if((position == backstop) && ((m_match_flags & match_prev_avail) == 0))
    {
       if(m_match_flags & match_not_bow)
-         return false;
+         b ^= true;
       else
          b ^= false;
    }
@@ -781,7 +772,7 @@ inline bool perl_matcher<BidiIterator, Allocator, traits>::match_assert_backref(
    {
       // Have we recursed into subexpression "index"?
       // If index == 0 then check for any recursion at all, otherwise for recursion to -index-1.
-      int idx = -(index+1);
+      int idx = -index-1;
       if(idx >= 10000)
       {
          named_subexpressions::range_type r = re.get_data().equal_range(idx);

@@ -29,7 +29,7 @@
 
     \brief inserts an element at the beginning of a seq. 
 
-    seq = seq to insert an element at. <br/>
+    seq = seq to insert an element at.
     elem  = element to insert.
 
     If the seq is an empty seq the result is a seq with the single element.

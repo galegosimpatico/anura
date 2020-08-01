@@ -10,8 +10,8 @@
 //           Andrew Lumsdaine
 //  See http://www.boost.org/libs/multi_array for documentation.
 
-#ifndef BOOST_MULTI_ARRAY_BASE_HPP
-#define BOOST_MULTI_ARRAY_BASE_HPP
+#ifndef BASE_RG071801_HPP
+#define BASE_RG071801_HPP
 
 //
 // base.hpp - some implementation base classes for from which
@@ -463,7 +463,6 @@ protected:
       index bound_adjustment = stride < 0 ? 1 : 0;
       BOOST_ASSERT(((index_bases[n] - bound_adjustment) <= finish) &&
         (finish <= (index_bases[n] + index(extents[n]) - bound_adjustment)));
-      ignore_unused_variable_warning(bound_adjustment);
 #endif // BOOST_DISABLE_ASSERTS
 
 
@@ -498,4 +497,4 @@ protected:
 
 } // namespace boost
 
-#endif
+#endif // BASE_RG071801_HPP

@@ -37,366 +37,25 @@
 #include <boost/container/detail/is_sorted.hpp>
 #include <boost/container/detail/type_traits.hpp>
 #include <boost/container/detail/iterators.hpp>
-#include <boost/container/detail/mpl.hpp>
-#include <boost/container/detail/is_contiguous_container.hpp>
-#include <boost/container/detail/is_container.hpp>
 
+#ifdef BOOST_CONTAINER_VECTOR_ITERATOR_IS_POINTER
+#include <boost/intrusive/pointer_traits.hpp>
+#endif
 #include <boost/intrusive/detail/minimal_pair_header.hpp>      //pair
 
 #include <boost/move/make_unique.hpp>
 #include <boost/move/iterator.hpp>
 #include <boost/move/adl_move_swap.hpp>
 #include <boost/move/algo/adaptive_sort.hpp>
-#include <boost/move/algo/detail/pdqsort.hpp>
 
 #if defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
 #include <boost/move/detail/fwd_macros.hpp>
 #endif
 
-#ifndef BOOST_CONTAINER_DOXYGEN_INVOKED
-
-//merge_unique
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_FUNCNAME merge_unique
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_NS_BEG namespace boost { namespace container { namespace dtl {
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_NS_END   }}}
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_MIN 3
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_MAX 3
-#include <boost/intrusive/detail/has_member_function_callable_with.hpp>
-
-//merge_equal
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_FUNCNAME merge
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_NS_BEG namespace boost { namespace container { namespace dtl {
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_NS_END   }}}
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_MIN 3
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_MAX 3
-#include <boost/intrusive/detail/has_member_function_callable_with.hpp>
-
-//index_of
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_FUNCNAME index_of
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_NS_BEG namespace boost { namespace container { namespace dtl {
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_NS_END   }}}
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_MIN 1
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_MAX 1
-#include <boost/intrusive/detail/has_member_function_callable_with.hpp>
-
-//nth
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_FUNCNAME nth
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_NS_BEG namespace boost { namespace container { namespace dtl {
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_NS_END   }}}
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_MIN 1
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_MAX 1
-#include <boost/intrusive/detail/has_member_function_callable_with.hpp>
-
-//reserve
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_FUNCNAME reserve
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_NS_BEG namespace boost { namespace container { namespace dtl {
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_NS_END   }}}
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_MIN 1
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_MAX 1
-#include <boost/intrusive/detail/has_member_function_callable_with.hpp>
-
-//capacity
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_FUNCNAME capacity
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_NS_BEG namespace boost { namespace container { namespace dtl {
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_NS_END   }}}
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_MIN 0
-#define BOOST_INTRUSIVE_HAS_MEMBER_FUNCTION_CALLABLE_WITH_MAX 0
-#include <boost/intrusive/detail/has_member_function_callable_with.hpp>
-
-#endif   //#ifndef BOOST_CONTAINER_DOXYGEN_INVOKED
 
 namespace boost {
 namespace container {
-namespace dtl {
-
-///////////////////////////////////////
-//
-// Helper functions to merge elements
-//
-///////////////////////////////////////
-
-BOOST_INTRUSIVE_INSTANTIATE_DEFAULT_TYPE_TMPLT(stored_allocator_type)
-
-///////////////////////////////////////
-//
-//  flat_tree_container_inplace_merge
-//
-///////////////////////////////////////
-template<class SequenceContainer, class Compare>
-void flat_tree_container_inplace_merge //is_contiguous_container == true
-   (SequenceContainer& dest, typename SequenceContainer::iterator it, Compare comp , dtl::true_)
-{
-   typedef typename SequenceContainer::value_type  value_type;
-   value_type *const braw = boost::movelib::iterator_to_raw_pointer(dest.begin());
-   value_type *const iraw = boost::movelib::iterator_to_raw_pointer(it);
-   value_type *const eraw = boost::movelib::iterator_to_raw_pointer(dest.end());
-   boost::movelib::adaptive_merge(braw, iraw, eraw, comp, eraw, dest.capacity()- dest.size());
-}
-
-template<class SequenceContainer, class Compare>
-void flat_tree_container_inplace_merge //is_contiguous_container == false
-   (SequenceContainer& dest, typename SequenceContainer::iterator it, Compare comp, dtl::false_)
-{
-   boost::movelib::adaptive_merge(dest.begin(), it, dest.end(), comp);
-}
-
-///////////////////////////////////////
-//
-//  flat_tree_container_inplace_sort_ending
-//
-///////////////////////////////////////
-template<class SequenceContainer, class Compare>
-void flat_tree_container_inplace_sort_ending //is_contiguous_container == true
-   (SequenceContainer& dest, typename SequenceContainer::iterator it, Compare comp, dtl::true_)
-{
-   typedef typename SequenceContainer::value_type  value_type;
-   value_type *const iraw = boost::movelib::iterator_to_raw_pointer(it);
-   value_type *const eraw = boost::movelib::iterator_to_raw_pointer(dest.end());
-   boost::movelib::adaptive_sort(iraw, eraw, comp, eraw, dest.capacity()- dest.size());
-}
-
-template<class SequenceContainer, class Compare>
-void flat_tree_container_inplace_sort_ending //is_contiguous_container == false
-   (SequenceContainer& dest, typename SequenceContainer::iterator it, Compare comp , dtl::false_)
-{
-   boost::movelib::adaptive_sort(it, dest.end(), comp);
-}
-
-///////////////////////////////////////
-//
-//          flat_tree_merge
-//
-///////////////////////////////////////
-template<class SequenceContainer, class Iterator, class Compare>
-BOOST_CONTAINER_FORCEINLINE void flat_tree_merge_equal
-   (SequenceContainer& dest, Iterator first, Iterator last, Compare comp, dtl::true_)
-{
-   dest.merge(first, last, comp);
-}
-
-template<class SequenceContainer, class Iterator, class Compare>
-BOOST_CONTAINER_FORCEINLINE void flat_tree_merge_equal   //has_merge_unique == false
-   (SequenceContainer& dest, Iterator first, Iterator last, Compare comp, dtl::false_)
-{
-   typedef typename SequenceContainer::iterator    iterator;
-   iterator const it = dest.insert( dest.end(), first, last );
-   dtl::bool_<is_contiguous_container<SequenceContainer>::value> contiguous_tag;
-   (flat_tree_container_inplace_merge)(dest, it, comp, contiguous_tag);
-}
-
-///////////////////////////////////////
-//
-//       flat_tree_merge_unique
-//
-///////////////////////////////////////
-template<class SequenceContainer, class Iterator, class Compare>
-BOOST_CONTAINER_FORCEINLINE void flat_tree_merge_unique  //has_merge_unique == true
-   (SequenceContainer& dest, Iterator first, Iterator last, Compare comp, dtl::true_)
-{
-   dest.merge_unique(first, last, comp);
-}
-
-template<class SequenceContainer, class Iterator, class Compare>
-BOOST_CONTAINER_FORCEINLINE void flat_tree_merge_unique  //has_merge_unique == false
-   (SequenceContainer& dest, Iterator first, Iterator last, Compare comp, dtl::false_)
-{
-   typedef typename SequenceContainer::iterator    iterator;
-   typedef typename SequenceContainer::size_type   size_type;
-
-   size_type const old_sz = dest.size();
-   iterator const first_new = dest.insert(dest.cend(), first, last );
-   iterator e = boost::movelib::inplace_set_unique_difference(first_new, dest.end(), dest.begin(), first_new, comp);
-   dest.erase(e, dest.end());
-   dtl::bool_<is_contiguous_container<SequenceContainer>::value> contiguous_tag;
-   (flat_tree_container_inplace_merge)(dest, dest.begin()+old_sz, comp, contiguous_tag);
-}
-
-///////////////////////////////////////
-//
-//         flat_tree_index_of
-//
-///////////////////////////////////////
-template<class SequenceContainer, class Iterator>
-BOOST_CONTAINER_FORCEINLINE typename SequenceContainer::size_type
-   flat_tree_index_of   // has_index_of == true
-      (SequenceContainer& cont, Iterator p, dtl::true_)
-{
-   return cont.index_of(p);
-}
-
-template<class SequenceContainer, class Iterator>
-BOOST_CONTAINER_FORCEINLINE typename SequenceContainer::size_type
-   flat_tree_index_of   // has_index_of == false
-      (SequenceContainer& cont, Iterator p, dtl::false_)
-{
-   typedef typename SequenceContainer::size_type size_type;
-   return static_cast<size_type>(p - cont.begin());
-}
-
-///////////////////////////////////////
-//
-//         flat_tree_nth
-//
-///////////////////////////////////////
-template<class Iterator, class SequenceContainer>
-BOOST_CONTAINER_FORCEINLINE Iterator
-   flat_tree_nth  // has_nth == true
-      (SequenceContainer& cont, typename SequenceContainer::size_type n, dtl::true_)
-{
-   return cont.nth(n);
-}
-
-template<class Iterator, class SequenceContainer>
-BOOST_CONTAINER_FORCEINLINE Iterator
-   flat_tree_nth  // has_nth == false
-      (SequenceContainer& cont, typename SequenceContainer::size_type n, dtl::false_)
-{
-   return cont.begin()+ n;
-}
-
-///////////////////////////////////////
-//
-//    flat_tree_get_stored_allocator
-//
-///////////////////////////////////////
-template<class SequenceContainer>
-BOOST_CONTAINER_FORCEINLINE typename SequenceContainer::stored_allocator_type &
-   flat_tree_get_stored_allocator   // has_get_stored_allocator == true
-      (SequenceContainer& cont, dtl::true_)
-{
-   return cont.get_stored_allocator();
-}
-
-template<class SequenceContainer>
-BOOST_CONTAINER_FORCEINLINE const typename SequenceContainer::stored_allocator_type &
-   flat_tree_get_stored_allocator   // has_get_stored_allocator == true
-      (const SequenceContainer& cont, dtl::true_)
-{
-   return cont.get_stored_allocator();
-}
-
-template<class SequenceContainer>
-BOOST_CONTAINER_FORCEINLINE typename SequenceContainer::allocator_type
-   flat_tree_get_stored_allocator   // has_get_stored_allocator == false
-      (SequenceContainer& cont, dtl::false_)
-{
-   return cont.get_allocator();
-}
-
-///////////////////////////////////////
-//
-//    flat_tree_adopt_sequence_equal
-//
-///////////////////////////////////////
-template<class SequenceContainer, class Compare>
-void flat_tree_sort_contiguous_to_adopt // is_contiguous_container == true
-   (SequenceContainer &tseq, BOOST_RV_REF(SequenceContainer) seq, Compare comp)
-{
-   if(tseq.capacity() >= (seq.capacity() - seq.size())) {
-      tseq.clear();
-      boost::movelib::adaptive_sort
-      (boost::movelib::iterator_to_raw_pointer(seq.begin())
-         , boost::movelib::iterator_to_raw_pointer(seq.end())
-         , comp
-         , boost::movelib::iterator_to_raw_pointer(tseq.begin())
-         , tseq.capacity());
-   }
-   else{
-      boost::movelib::adaptive_sort
-      (boost::movelib::iterator_to_raw_pointer(seq.begin())
-         , boost::movelib::iterator_to_raw_pointer(seq.end())
-         , comp
-         , boost::movelib::iterator_to_raw_pointer(seq.end())
-         , seq.capacity() - seq.size());
-   }
-}
-
-template<class SequenceContainer, class Compare>
-void flat_tree_adopt_sequence_equal // is_contiguous_container == true
-   (SequenceContainer &tseq, BOOST_RV_REF(SequenceContainer) seq, Compare comp, dtl::true_)
-{
-   flat_tree_sort_contiguous_to_adopt(tseq, boost::move(seq), comp);
-   tseq = boost::move(seq);
-}
-
-template<class SequenceContainer, class Compare>
-void flat_tree_adopt_sequence_equal // is_contiguous_container == false
-   (SequenceContainer &tseq, BOOST_RV_REF(SequenceContainer) seq, Compare comp, dtl::false_)
-{
-   boost::movelib::adaptive_sort(seq.begin(), seq.end(), comp);
-   tseq = boost::move(seq);
-}
-
-///////////////////////////////////////
-//
-//    flat_tree_adopt_sequence_unique
-//
-///////////////////////////////////////
-template<class SequenceContainer, class Compare>
-void flat_tree_adopt_sequence_unique// is_contiguous_container == true
-   (SequenceContainer &tseq, BOOST_RV_REF(SequenceContainer) seq, Compare comp, dtl::true_)
-{
-   boost::movelib::pdqsort
-      ( boost::movelib::iterator_to_raw_pointer(seq.begin())
-      , boost::movelib::iterator_to_raw_pointer(seq.end())
-      , comp);
-   seq.erase(boost::movelib::unique
-      (seq.begin(), seq.end(), boost::movelib::negate<Compare>(comp)), seq.cend());
-   tseq = boost::move(seq);
-}
-
-template<class SequenceContainer, class Compare>
-void flat_tree_adopt_sequence_unique// is_contiguous_container == false
-   (SequenceContainer &tseq, BOOST_RV_REF(SequenceContainer) seq, Compare comp, dtl::false_)
-{
-   boost::movelib::pdqsort(seq.begin(), seq.end(), comp);
-   seq.erase(boost::movelib::unique
-      (seq.begin(), seq.end(), boost::movelib::negate<Compare>(comp)), seq.cend());
-   tseq = boost::move(seq);
-}
-
-///////////////////////////////////////
-//
-//       flat_tree_reserve
-//
-///////////////////////////////////////
-template<class SequenceContainer>
-BOOST_CONTAINER_FORCEINLINE void // has_reserve == true
-   flat_tree_reserve(SequenceContainer &tseq, typename SequenceContainer::size_type cap, dtl::true_)
-{
-   tseq.reserve(cap);
-}
-
-template<class SequenceContainer>
-BOOST_CONTAINER_FORCEINLINE void // has_reserve == false
-   flat_tree_reserve(SequenceContainer &, typename SequenceContainer::size_type, dtl::false_)
-{
-}
-
-///////////////////////////////////////
-//
-//       flat_tree_capacity
-//
-///////////////////////////////////////
-template<class SequenceContainer>   // has_capacity == true
-BOOST_CONTAINER_FORCEINLINE typename SequenceContainer::size_type
-   flat_tree_capacity(const SequenceContainer &tseq, dtl::true_)
-{
-   return tseq.capacity();
-}
-
-template<class SequenceContainer>   // has_capacity == false
-BOOST_CONTAINER_FORCEINLINE typename SequenceContainer::size_type
-   flat_tree_capacity(const SequenceContainer &tseq, dtl::false_)
-{
-   return tseq.size();
-}
-
-///////////////////////////////////////
-//
-//       flat_tree_value_compare
-//
-///////////////////////////////////////
+namespace container_detail {
 
 template<class Compare, class Value, class KeyOfValue>
 class flat_tree_value_compare
@@ -427,49 +86,41 @@ class flat_tree_value_compare
       {  return *this;  }
 };
 
-
-///////////////////////////////////////
-//
-//       select_container_type
-//
-///////////////////////////////////////
-template < class Value, class AllocatorOrContainer
-         , bool = boost::container::dtl::is_container<AllocatorOrContainer>::value
-         >
-struct select_container_type
+template<class Pointer>
+struct get_flat_tree_iterators
 {
-   typedef AllocatorOrContainer type;
+   #ifdef BOOST_CONTAINER_VECTOR_ITERATOR_IS_POINTER
+   typedef Pointer                                             iterator;
+   typedef typename boost::intrusive::
+      pointer_traits<Pointer>::element_type                    iterator_element_type;
+   typedef typename boost::intrusive::
+      pointer_traits<Pointer>:: template
+         rebind_pointer<const iterator_element_type>::type     const_iterator;
+   #else //BOOST_CONTAINER_VECTOR_ITERATOR_IS_POINTER
+   typedef typename boost::container::container_detail::
+      vec_iterator<Pointer, false>                             iterator;
+   typedef typename boost::container::container_detail::
+      vec_iterator<Pointer, true >                             const_iterator;
+   #endif   //BOOST_CONTAINER_VECTOR_ITERATOR_IS_POINTER
+   typedef boost::container::reverse_iterator<iterator>        reverse_iterator;
+   typedef boost::container::reverse_iterator<const_iterator>  const_reverse_iterator;
 };
 
-template <class Value, class AllocatorOrContainer>
-struct select_container_type<Value, AllocatorOrContainer, false>
-{
-   typedef boost::container::vector<Value, typename real_allocator<Value, AllocatorOrContainer>::type> type;
-};
-
-
-///////////////////////////////////////
-//
-//          flat_tree
-//
-///////////////////////////////////////
 template <class Value, class KeyOfValue,
-          class Compare, class AllocatorOrContainer>
+          class Compare, class Allocator>
 class flat_tree
 {
    public:
-   typedef typename select_container_type<Value, AllocatorOrContainer>::type container_type;
-   typedef container_type sequence_type;  //For backwards compatibility
+   typedef boost::container::vector<Value, Allocator>    sequence_type;
 
    private:
-   typedef typename container_type::allocator_type        allocator_t;
-   typedef allocator_traits<allocator_t>                 allocator_traits_type;
+   typedef Allocator                                     allocator_t;
+   typedef allocator_traits<Allocator>                   allocator_traits_type;
 
    public:
    typedef flat_tree_value_compare<Compare, Value, KeyOfValue> value_compare;
 
    private:
-   
    struct Data
       //Inherit from value_compare to do EBO
       : public value_compare
@@ -501,11 +152,11 @@ class flat_tree
          : value_compare(boost::move(static_cast<value_compare&>(d))), m_seq(boost::move(d.m_seq))
       {}
 
-      Data(const Data &d, const allocator_t &a)
+      Data(const Data &d, const Allocator &a)
          : value_compare(static_cast<const value_compare&>(d)), m_seq(d.m_seq, a)
       {}
 
-      Data(BOOST_RV_REF(Data) d, const allocator_t &a)
+      Data(BOOST_RV_REF(Data) d, const Allocator &a)
          : value_compare(boost::move(static_cast<value_compare&>(d))), m_seq(boost::move(d.m_seq), a)
       {}
 
@@ -530,7 +181,7 @@ class flat_tree
          this->m_seq.swap(d.m_seq);
       }
 
-      container_type m_seq;
+      sequence_type m_seq;
    };
 
    Data m_data;
@@ -538,39 +189,28 @@ class flat_tree
 
    public:
 
-   typedef typename container_type::value_type               value_type;
-   typedef typename container_type::pointer                  pointer;
-   typedef typename container_type::const_pointer            const_pointer;
-   typedef typename container_type::reference                reference;
-   typedef typename container_type::const_reference          const_reference;
+   typedef typename sequence_type::value_type               value_type;
+   typedef typename sequence_type::pointer                  pointer;
+   typedef typename sequence_type::const_pointer            const_pointer;
+   typedef typename sequence_type::reference                reference;
+   typedef typename sequence_type::const_reference          const_reference;
    typedef typename KeyOfValue::type                        key_type;
    typedef Compare                                          key_compare;
-   typedef typename container_type::allocator_type           allocator_type;
-   typedef typename container_type::size_type                size_type;
-   typedef typename container_type::difference_type          difference_type;
-   typedef typename container_type::iterator                 iterator;
-   typedef typename container_type::const_iterator           const_iterator;
-   typedef typename container_type::reverse_iterator         reverse_iterator;
-   typedef typename container_type::const_reverse_iterator   const_reverse_iterator;
+   typedef typename sequence_type::allocator_type           allocator_type;
+   typedef typename sequence_type::size_type                size_type;
+   typedef typename sequence_type::difference_type          difference_type;
+   typedef typename sequence_type::iterator                 iterator;
+   typedef typename sequence_type::const_iterator           const_iterator;
+   typedef typename sequence_type::reverse_iterator         reverse_iterator;
+   typedef typename sequence_type::const_reverse_iterator   const_reverse_iterator;
 
    //!Standard extension
-   typedef BOOST_INTRUSIVE_OBTAIN_TYPE_WITH_DEFAULT
-      (boost::container::dtl::, container_type
-      ,stored_allocator_type, allocator_type)               stored_allocator_type;
-
-   static const bool has_stored_allocator_type =
-      BOOST_INTRUSIVE_HAS_TYPE(boost::container::dtl::, container_type, stored_allocator_type);
+   typedef allocator_type                                   stored_allocator_type;
 
    private:
    typedef allocator_traits<stored_allocator_type> stored_allocator_traits;
 
    public:
-   typedef typename dtl::if_c
-      <has_stored_allocator_type, const stored_allocator_type &, allocator_type>::type get_stored_allocator_const_return_t;
-
-   typedef typename dtl::if_c
-      <has_stored_allocator_type, stored_allocator_type &, allocator_type>::type get_stored_allocator_noconst_return_t;
-
    BOOST_CONTAINER_FORCEINLINE flat_tree()
       : m_data()
    { }
@@ -592,7 +232,7 @@ class flat_tree
    { }
 
    BOOST_CONTAINER_FORCEINLINE flat_tree(BOOST_RV_REF(flat_tree) x)
-      BOOST_NOEXCEPT_IF(boost::container::dtl::is_nothrow_move_constructible<Compare>::value)
+      BOOST_NOEXCEPT_IF(boost::container::container_detail::is_nothrow_move_constructible<Compare>::value)
       :  m_data(boost::move(x.m_data))
    { }
 
@@ -702,7 +342,7 @@ class flat_tree
    BOOST_CONTAINER_FORCEINLINE flat_tree&  operator=(BOOST_RV_REF(flat_tree) x)
       BOOST_NOEXCEPT_IF( (allocator_traits_type::propagate_on_container_move_assignment::value ||
                           allocator_traits_type::is_always_equal::value) &&
-                           boost::container::dtl::is_nothrow_move_assignable<Compare>::value)
+                           boost::container::container_detail::is_nothrow_move_assignable<Compare>::value)
    {  m_data = boost::move(x.m_data); return *this;  }
 
    BOOST_CONTAINER_FORCEINLINE const value_compare &priv_value_comp() const
@@ -717,11 +357,6 @@ class flat_tree
    BOOST_CONTAINER_FORCEINLINE key_compare &priv_key_comp()
    { return this->priv_value_comp().get_comp(); }
 
-   struct insert_commit_data
-   {
-      const_iterator position;
-   };
-
    public:
    // accessors:
    BOOST_CONTAINER_FORCEINLINE Compare key_comp() const
@@ -733,15 +368,11 @@ class flat_tree
    BOOST_CONTAINER_FORCEINLINE allocator_type get_allocator() const
    { return this->m_data.m_seq.get_allocator(); }
 
-   BOOST_CONTAINER_FORCEINLINE get_stored_allocator_const_return_t get_stored_allocator() const
-   {
-      return flat_tree_get_stored_allocator(this->m_data.m_seq, dtl::bool_<has_stored_allocator_type>());
-   }
+   BOOST_CONTAINER_FORCEINLINE const stored_allocator_type &get_stored_allocator() const
+   {  return this->m_data.m_seq.get_stored_allocator(); }
 
-   BOOST_CONTAINER_FORCEINLINE get_stored_allocator_noconst_return_t get_stored_allocator()
-   {
-      return flat_tree_get_stored_allocator(this->m_data.m_seq, dtl::bool_<has_stored_allocator_type>());
-   }
+   BOOST_CONTAINER_FORCEINLINE stored_allocator_type &get_stored_allocator()
+   {  return this->m_data.m_seq.get_stored_allocator(); }
 
    BOOST_CONTAINER_FORCEINLINE iterator begin()
    { return this->m_data.m_seq.begin(); }
@@ -790,7 +421,7 @@ class flat_tree
 
    BOOST_CONTAINER_FORCEINLINE void swap(flat_tree& other)
       BOOST_NOEXCEPT_IF(  allocator_traits_type::is_always_equal::value
-                                 && boost::container::dtl::is_nothrow_swappable<Compare>::value )
+                                 && boost::container::container_detail::is_nothrow_swappable<Compare>::value )
    {  this->m_data.swap(other.m_data);  }
 
    public:
@@ -801,8 +432,7 @@ class flat_tree
       insert_commit_data data;
       ret.second = this->priv_insert_unique_prepare(KeyOfValue()(val), data);
       ret.first = ret.second ? this->priv_insert_commit(data, val)
-                             : this->begin() + (data.position - this->cbegin());
-                             //: iterator(vector_iterator_get_ptr(data.position));
+                             : iterator(vector_iterator_get_ptr(data.position));
       return ret;
    }
 
@@ -812,8 +442,7 @@ class flat_tree
       insert_commit_data data;
       ret.second = this->priv_insert_unique_prepare(KeyOfValue()(val), data);
       ret.first = ret.second ? this->priv_insert_commit(data, boost::move(val))
-                             : this->begin() + (data.position - this->cbegin());
-                             //: iterator(vector_iterator_get_ptr(data.position));
+                             : iterator(vector_iterator_get_ptr(data.position));
       return ret;
    }
 
@@ -837,8 +466,7 @@ class flat_tree
       insert_commit_data data;
       return this->priv_insert_unique_prepare(hint, KeyOfValue()(val), data)
             ? this->priv_insert_commit(data, val)
-            : this->begin() + (data.position - this->cbegin());
-            //: iterator(vector_iterator_get_ptr(data.position));
+            : iterator(vector_iterator_get_ptr(data.position));
    }
 
    iterator insert_unique(const_iterator hint, BOOST_RV_REF(value_type) val)
@@ -847,8 +475,7 @@ class flat_tree
       insert_commit_data data;
       return this->priv_insert_unique_prepare(hint, KeyOfValue()(val), data)
          ? this->priv_insert_commit(data, boost::move(val))
-         : this->begin() + (data.position - this->cbegin());
-         //: iterator(vector_iterator_get_ptr(data.position));
+         : iterator(vector_iterator_get_ptr(data.position));
    }
 
    iterator insert_equal(const_iterator hint, const value_type& val)
@@ -870,103 +497,149 @@ class flat_tree
    template <class InIt>
    void insert_unique(InIt first, InIt last)
    {
-      dtl::bool_<is_contiguous_container<container_type>::value> contiguous_tag;
-      container_type &seq = this->m_data.m_seq;
-      value_compare &val_cmp = this->priv_value_comp();
-
-      //Step 1: put new elements in the back
-      typename container_type::iterator const it = seq.insert(seq.cend(), first, last);
-
-      //Step 2: sort them
-      boost::movelib::pdqsort(it, seq.end(), val_cmp);
-
-      //Step 3: only left unique values from the back not already present in the original range
-      typename container_type::iterator const e = boost::movelib::inplace_set_unique_difference
-         (it, seq.end(), seq.begin(), it, val_cmp);
-
-      seq.erase(e, seq.cend());
-      //it might be invalidated by erasing [e, seq.end) if e == it
-      if (it != e)
-      {
-         //Step 4: merge both ranges
-         (flat_tree_container_inplace_merge)(seq, it, this->priv_value_comp(), contiguous_tag);
+      for ( ; first != last; ++first){
+         this->insert_unique(*first);
       }
    }
 
    template <class InIt>
-   void insert_equal(InIt first, InIt last)
+   void insert_equal(InIt first, InIt last
+      #if !defined(BOOST_CONTAINER_DOXYGEN_INVOKED)
+      , typename container_detail::enable_if_c
+         < container_detail::is_input_iterator<InIt>::value
+         >::type * = 0
+      #endif
+      )
+   {  this->priv_insert_equal_loop(first, last);  }
+
+   template <class InIt>
+   void insert_equal(InIt first, InIt last
+      #if !defined(BOOST_CONTAINER_DOXYGEN_INVOKED)
+      , typename container_detail::enable_if_c
+         < !container_detail::is_input_iterator<InIt>::value
+         >::type * = 0
+      #endif
+      )
    {
-      dtl::bool_<is_contiguous_container<container_type>::value> contiguous_tag;
-      container_type &seq = this->m_data.m_seq;
-      typename container_type::iterator const it = seq.insert(seq.cend(), first, last);
-      (flat_tree_container_inplace_sort_ending)(seq, it, this->priv_value_comp(), contiguous_tag);
-      (flat_tree_container_inplace_merge)      (seq, it, this->priv_value_comp(), contiguous_tag);
+      const size_type len = static_cast<size_type>(boost::container::iterator_distance(first, last));
+      this->reserve(this->size()+len);
+      this->priv_insert_equal_loop(first, last);
    }
 
    //Ordered
 
    template <class InIt>
-   void insert_equal(ordered_range_t, InIt first, InIt last)
+   void insert_equal(ordered_range_t, InIt first, InIt last
+      #if !defined(BOOST_CONTAINER_DOXYGEN_INVOKED)
+      , typename container_detail::enable_if_c
+         < container_detail::is_input_iterator<InIt>::value
+         >::type * = 0
+      #endif
+      )
+   {  this->priv_insert_equal_loop_ordered(first, last); }
+
+   template <class FwdIt>
+   void insert_equal(ordered_range_t, FwdIt first, FwdIt last
+      #if !defined(BOOST_CONTAINER_DOXYGEN_INVOKED)
+      , typename container_detail::enable_if_c
+         < !container_detail::is_input_iterator<FwdIt>::value &&
+         container_detail::is_forward_iterator<FwdIt>::value
+         >::type * = 0
+      #endif
+      )
    {
-      const bool value = boost::container::dtl::
-         has_member_function_callable_with_merge_unique<container_type, InIt, InIt, value_compare>::value;
-      (flat_tree_merge_equal)(this->m_data.m_seq, first, last, this->priv_value_comp(), dtl::bool_<value>());
+      const size_type len = static_cast<size_type>(boost::container::iterator_distance(first, last));
+      this->reserve(this->size()+len);
+      this->priv_insert_equal_loop_ordered(first, last);
    }
 
+   template <class BidirIt>
+   void insert_equal(ordered_range_t, BidirIt first, BidirIt last
+      #if !defined(BOOST_CONTAINER_DOXYGEN_INVOKED)
+      , typename container_detail::disable_if_or
+         < void
+         , container_detail::is_input_iterator<BidirIt>
+         , container_detail::is_forward_iterator<BidirIt>
+         >::type * = 0
+      #endif
+      )
+   {   this->m_data.m_seq.merge(first, last, static_cast<const value_compare &>(this->m_data));   }
+
    template <class InIt>
-   void insert_unique(ordered_unique_range_t, InIt first, InIt last)
+   void insert_unique(ordered_unique_range_t, InIt first, InIt last
+      #if !defined(BOOST_CONTAINER_DOXYGEN_INVOKED)
+      , typename container_detail::enable_if_or
+         < void
+         , container_detail::is_input_iterator<InIt>
+         , container_detail::is_forward_iterator<InIt>
+         >::type * = 0
+      #endif
+      )
    {
-      const bool value = boost::container::dtl::
-         has_member_function_callable_with_merge_unique<container_type, InIt, InIt, value_compare>::value;
-      (flat_tree_merge_unique)(this->m_data.m_seq, first, last, this->priv_value_comp(), dtl::bool_<value>());
+      const_iterator pos(this->cend());
+      for ( ; first != last; ++first){
+         pos = this->insert_unique(pos, *first);
+         ++pos;
+      }
    }
+
+   template <class BidirIt>
+   void insert_unique(ordered_unique_range_t, BidirIt first, BidirIt last
+      #if !defined(BOOST_CONTAINER_DOXYGEN_INVOKED)
+      , typename container_detail::enable_if_c
+         < !(container_detail::is_input_iterator<BidirIt>::value ||
+             container_detail::is_forward_iterator<BidirIt>::value)
+         >::type * = 0
+      #endif
+      )
+   {   this->m_data.m_seq.merge_unique(first, last, static_cast<const value_compare &>(this->m_data));   }
 
    #if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
 
    template <class... Args>
    std::pair<iterator, bool> emplace_unique(BOOST_FWD_REF(Args)... args)
    {
-      typename dtl::aligned_storage<sizeof(value_type), dtl::alignment_of<value_type>::value>::type v;
-      value_type *pval = reinterpret_cast<value_type *>(v.data);
-      get_stored_allocator_noconst_return_t a = this->get_stored_allocator();
-      stored_allocator_traits::construct(a, pval, ::boost::forward<Args>(args)... );
-      value_destructor<stored_allocator_type, value_type> d(a, *pval);
-      return this->insert_unique(::boost::move(*pval));
+      typename aligned_storage<sizeof(value_type), alignment_of<value_type>::value>::type v;
+      value_type &val = *static_cast<value_type *>(static_cast<void *>(&v));
+      stored_allocator_type &a = this->get_stored_allocator();
+      stored_allocator_traits::construct(a, &val, ::boost::forward<Args>(args)... );
+      value_destructor<stored_allocator_type> d(a, val);
+      return this->insert_unique(::boost::move(val));
    }
 
    template <class... Args>
    iterator emplace_hint_unique(const_iterator hint, BOOST_FWD_REF(Args)... args)
    {
       //hint checked in insert_unique
-      typename dtl::aligned_storage<sizeof(value_type), dtl::alignment_of<value_type>::value>::type v;
-      value_type *pval = reinterpret_cast<value_type *>(v.data);
-      get_stored_allocator_noconst_return_t a = this->get_stored_allocator();
-      stored_allocator_traits::construct(a, pval, ::boost::forward<Args>(args)... );
-      value_destructor<stored_allocator_type, value_type> d(a, *pval);
-      return this->insert_unique(hint, ::boost::move(*pval));
+      typename aligned_storage<sizeof(value_type), alignment_of<value_type>::value>::type v;
+      value_type &val = *static_cast<value_type *>(static_cast<void *>(&v));
+      stored_allocator_type &a = this->get_stored_allocator();
+      stored_allocator_traits::construct(a, &val, ::boost::forward<Args>(args)... );
+      value_destructor<stored_allocator_type> d(a, val);
+      return this->insert_unique(hint, ::boost::move(val));
    }
 
    template <class... Args>
    iterator emplace_equal(BOOST_FWD_REF(Args)... args)
    {
-      typename dtl::aligned_storage<sizeof(value_type), dtl::alignment_of<value_type>::value>::type v;
-      value_type *pval = reinterpret_cast<value_type *>(v.data);
-      get_stored_allocator_noconst_return_t a = this->get_stored_allocator();
-      stored_allocator_traits::construct(a, pval, ::boost::forward<Args>(args)... );
-      value_destructor<stored_allocator_type, value_type> d(a, *pval);
-      return this->insert_equal(::boost::move(*pval));
+      typename aligned_storage<sizeof(value_type), alignment_of<value_type>::value>::type v;
+      value_type &val = *static_cast<value_type *>(static_cast<void *>(&v));
+      stored_allocator_type &a = this->get_stored_allocator();
+      stored_allocator_traits::construct(a, &val, ::boost::forward<Args>(args)... );
+      value_destructor<stored_allocator_type> d(a, val);
+      return this->insert_equal(::boost::move(val));
    }
 
    template <class... Args>
    iterator emplace_hint_equal(const_iterator hint, BOOST_FWD_REF(Args)... args)
    {
       //hint checked in insert_equal
-      typename dtl::aligned_storage<sizeof(value_type), dtl::alignment_of<value_type>::value>::type v;
-      value_type *pval = reinterpret_cast<value_type *>(v.data);
-      get_stored_allocator_noconst_return_t a = this->get_stored_allocator();
-      stored_allocator_traits::construct(a, pval, ::boost::forward<Args>(args)... );
-      value_destructor<stored_allocator_type, value_type> d(a, *pval);
-      return this->insert_equal(hint, ::boost::move(*pval));
+      typename aligned_storage<sizeof(value_type), alignment_of<value_type>::value>::type v;
+      value_type &val = *static_cast<value_type *>(static_cast<void *>(&v));
+      stored_allocator_type &a = this->get_stored_allocator();
+      stored_allocator_traits::construct(a, &val, ::boost::forward<Args>(args)... );
+      value_destructor<stored_allocator_type> d(a, val);
+      return this->insert_equal(hint, ::boost::move(val));
    }
 
    template <class KeyType, class... Args>
@@ -998,45 +671,45 @@ class flat_tree
    BOOST_MOVE_TMPL_LT##N BOOST_MOVE_CLASS##N BOOST_MOVE_GT##N \
    std::pair<iterator, bool> emplace_unique(BOOST_MOVE_UREF##N)\
    {\
-      typename dtl::aligned_storage<sizeof(value_type), dtl::alignment_of<value_type>::value>::type v;\
-      value_type *pval = reinterpret_cast<value_type *>(v.data);\
-      get_stored_allocator_noconst_return_t a = this->get_stored_allocator();\
-      stored_allocator_traits::construct(a, pval BOOST_MOVE_I##N BOOST_MOVE_FWD##N);\
-      value_destructor<stored_allocator_type, value_type> d(a, *pval);\
-      return this->insert_unique(::boost::move(*pval));\
+      typename aligned_storage<sizeof(value_type), alignment_of<value_type>::value>::type v;\
+      value_type &val = *static_cast<value_type *>(static_cast<void *>(&v));\
+      stored_allocator_type &a = this->get_stored_allocator();\
+      stored_allocator_traits::construct(a, &val BOOST_MOVE_I##N BOOST_MOVE_FWD##N);\
+      value_destructor<stored_allocator_type> d(a, val);\
+      return this->insert_unique(::boost::move(val));\
    }\
    \
    BOOST_MOVE_TMPL_LT##N BOOST_MOVE_CLASS##N BOOST_MOVE_GT##N \
    iterator emplace_hint_unique(const_iterator hint BOOST_MOVE_I##N BOOST_MOVE_UREF##N)\
    {\
-      typename dtl::aligned_storage<sizeof(value_type), dtl::alignment_of<value_type>::value>::type v;\
-      value_type *pval = reinterpret_cast<value_type *>(v.data);\
-      get_stored_allocator_noconst_return_t a = this->get_stored_allocator();\
-      stored_allocator_traits::construct(a, pval BOOST_MOVE_I##N BOOST_MOVE_FWD##N);\
-      value_destructor<stored_allocator_type, value_type> d(a, *pval);\
-      return this->insert_unique(hint, ::boost::move(*pval));\
+      typename aligned_storage<sizeof(value_type), alignment_of<value_type>::value>::type v;\
+      value_type &val = *static_cast<value_type *>(static_cast<void *>(&v));\
+      stored_allocator_type &a = this->get_stored_allocator();\
+      stored_allocator_traits::construct(a, &val BOOST_MOVE_I##N BOOST_MOVE_FWD##N);\
+      value_destructor<stored_allocator_type> d(a, val);\
+      return this->insert_unique(hint, ::boost::move(val));\
    }\
    \
    BOOST_MOVE_TMPL_LT##N BOOST_MOVE_CLASS##N BOOST_MOVE_GT##N \
    iterator emplace_equal(BOOST_MOVE_UREF##N)\
    {\
-      typename dtl::aligned_storage<sizeof(value_type), dtl::alignment_of<value_type>::value>::type v;\
-      value_type *pval = reinterpret_cast<value_type *>(v.data);\
-      get_stored_allocator_noconst_return_t a = this->get_stored_allocator();\
-      stored_allocator_traits::construct(a, pval BOOST_MOVE_I##N BOOST_MOVE_FWD##N);\
-      value_destructor<stored_allocator_type, value_type> d(a, *pval);\
-      return this->insert_equal(::boost::move(*pval));\
+      typename aligned_storage<sizeof(value_type), alignment_of<value_type>::value>::type v;\
+      value_type &val = *static_cast<value_type *>(static_cast<void *>(&v));\
+      stored_allocator_type &a = this->get_stored_allocator();\
+      stored_allocator_traits::construct(a, &val BOOST_MOVE_I##N BOOST_MOVE_FWD##N);\
+      value_destructor<stored_allocator_type> d(a, val);\
+      return this->insert_equal(::boost::move(val));\
    }\
    \
    BOOST_MOVE_TMPL_LT##N BOOST_MOVE_CLASS##N BOOST_MOVE_GT##N \
    iterator emplace_hint_equal(const_iterator hint BOOST_MOVE_I##N BOOST_MOVE_UREF##N)\
    {\
-      typename dtl::aligned_storage <sizeof(value_type), dtl::alignment_of<value_type>::value>::type v;\
-      value_type *pval = reinterpret_cast<value_type *>(v.data);\
-      get_stored_allocator_noconst_return_t a = this->get_stored_allocator();\
-      stored_allocator_traits::construct(a, pval BOOST_MOVE_I##N BOOST_MOVE_FWD##N);\
-      value_destructor<stored_allocator_type, value_type> d(a, *pval);\
-      return this->insert_equal(hint, ::boost::move(*pval));\
+      typename aligned_storage <sizeof(value_type), alignment_of<value_type>::value>::type v;\
+      value_type &val = *static_cast<value_type *>(static_cast<void *>(&v));\
+      stored_allocator_type &a = this->get_stored_allocator();\
+      stored_allocator_traits::construct(a, &val BOOST_MOVE_I##N BOOST_MOVE_FWD##N);\
+      value_destructor<stored_allocator_type> d(a, val);\
+      return this->insert_equal(hint, ::boost::move(val));\
    }\
    template <class KeyType BOOST_MOVE_I##N BOOST_MOVE_CLASS##N>\
    BOOST_CONTAINER_FORCEINLINE std::pair<iterator, bool>\
@@ -1117,32 +790,16 @@ class flat_tree
    {  this->m_data.m_seq.shrink_to_fit();  }
 
    BOOST_CONTAINER_FORCEINLINE iterator nth(size_type n) BOOST_NOEXCEPT_OR_NOTHROW
-   {
-      const bool value = boost::container::dtl::
-         has_member_function_callable_with_nth<container_type, size_type>::value;
-      return flat_tree_nth<iterator>(this->m_data.m_seq, n, dtl::bool_<value>());
-   }
+   {  return this->m_data.m_seq.nth(n);   }
 
    BOOST_CONTAINER_FORCEINLINE const_iterator nth(size_type n) const BOOST_NOEXCEPT_OR_NOTHROW
-   {
-      const bool value = boost::container::dtl::
-         has_member_function_callable_with_nth<container_type, size_type>::value;
-      return flat_tree_nth<const_iterator>(this->m_data.m_seq, n, dtl::bool_<value>());
-   }
+   {  return this->m_data.m_seq.nth(n);   }
 
    BOOST_CONTAINER_FORCEINLINE size_type index_of(iterator p) BOOST_NOEXCEPT_OR_NOTHROW
-   {
-      const bool value = boost::container::dtl::
-         has_member_function_callable_with_index_of<container_type, iterator>::value;
-      return flat_tree_index_of(this->m_data.m_seq, p, dtl::bool_<value>());
-   }
+   {  return this->m_data.m_seq.index_of(p);   }
 
    BOOST_CONTAINER_FORCEINLINE size_type index_of(const_iterator p) const BOOST_NOEXCEPT_OR_NOTHROW
-   {
-      const bool value = boost::container::dtl::
-         has_member_function_callable_with_index_of<container_type, const_iterator>::value;
-      return flat_tree_index_of(this->m_data.m_seq, p, dtl::bool_<value>());
-   }
+   {  return this->m_data.m_seq.index_of(p);   }
 
    // set operations:
    iterator find(const key_type& k)
@@ -1166,31 +823,7 @@ class flat_tree
       return i;
    }
 
-   template<class K>
-   typename dtl::enable_if_transparent<key_compare, K, iterator>::type
-      find(const K& k)
-   {
-      iterator i = this->lower_bound(k);
-      iterator end_it = this->end();
-      if (i != end_it && this->m_data.get_comp()(k, KeyOfValue()(*i))){
-         i = end_it;
-      }
-      return i;
-   }
-
-   template<class K>
-   typename dtl::enable_if_transparent<key_compare, K, const_iterator>::type
-      find(const K& k) const
-   {
-      const_iterator i = this->lower_bound(k);
-
-      const_iterator end_it = this->cend();
-      if (i != end_it && this->m_data.get_comp()(k, KeyOfValue()(*i))){
-         i = end_it;
-      }
-      return i;
-   }
-
+   // set operations:
    size_type count(const key_type& k) const
    {
       std::pair<const_iterator, const_iterator> p = this->equal_range(k);
@@ -1198,60 +831,34 @@ class flat_tree
       return n;
    }
 
-   template<class K>
-   typename dtl::enable_if_transparent<key_compare, K, size_type>::type
-      count(const K& k) const
-   {
-      std::pair<const_iterator, const_iterator> p = this->equal_range(k);
-      size_type n = p.second - p.first;
-      return n;
-   }
-
-   BOOST_CONTAINER_FORCEINLINE bool contains(const key_type& x) const
-   {  return this->find(x) != this->cend();  }
-
-   template<typename K>
-   BOOST_CONTAINER_FORCEINLINE
-      typename dtl::enable_if_transparent<key_compare, K, bool>::type
-         contains(const K& x) const
-   {  return this->find(x) != this->cend();  }
-
    template<class C2>
-   BOOST_CONTAINER_FORCEINLINE void merge_unique(flat_tree<Value, KeyOfValue, C2, AllocatorOrContainer>& source)
+   void merge_unique(flat_tree<Value, KeyOfValue, C2, Allocator>& source)
    {
-      this->insert_unique( boost::make_move_iterator(source.begin())
-                         , boost::make_move_iterator(source.end()));
+      this->insert( boost::make_move_iterator(source.begin())
+                  , boost::make_move_iterator(source.end()));
    }
 
    template<class C2>
-   BOOST_CONTAINER_FORCEINLINE void merge_equal(flat_tree<Value, KeyOfValue, C2, AllocatorOrContainer>& source)
+   void merge_equal(flat_tree<Value, KeyOfValue, C2, Allocator>& source)
    {
-      this->insert_equal( boost::make_move_iterator(source.begin())
-                        , boost::make_move_iterator(source.end()));
+      this->insert( boost::make_move_iterator(source.begin())
+                  , boost::make_move_iterator(source.end()));
    }
 
-   BOOST_CONTAINER_FORCEINLINE void merge_unique(flat_tree& source)
+   void merge_unique(flat_tree& source)
    {
-      const bool value = boost::container::dtl::
-         has_member_function_callable_with_merge_unique<container_type, iterator, iterator, value_compare>::value;
-      (flat_tree_merge_unique)
-         ( this->m_data.m_seq
-         , boost::make_move_iterator(source.m_data.m_seq.begin())
-         , boost::make_move_iterator(source.m_data.m_seq.end())
-         , this->priv_value_comp()
-         , dtl::bool_<value>());
+      this->m_data.m_seq.merge_unique
+         ( boost::make_move_iterator(source.begin())
+         , boost::make_move_iterator(source.end())
+         , static_cast<const value_compare &>(this->m_data));
    }
 
-   BOOST_CONTAINER_FORCEINLINE void merge_equal(flat_tree& source)
+   void merge_equal(flat_tree& source)
    {
-      const bool value = boost::container::dtl::
-         has_member_function_callable_with_merge<container_type, iterator, iterator, value_compare>::value;
-      (flat_tree_merge_equal)
-         ( this->m_data.m_seq
-         , boost::make_move_iterator(source.m_data.m_seq.begin())
-         , boost::make_move_iterator(source.m_data.m_seq.end())
-         , this->priv_value_comp()
-         , dtl::bool_<value>());
+      this->m_data.m_seq.merge
+         ( boost::make_move_iterator(source.begin())
+         , boost::make_move_iterator(source.end())
+         , static_cast<const value_compare &>(this->m_data));
    }
 
    BOOST_CONTAINER_FORCEINLINE iterator lower_bound(const key_type& k)
@@ -1260,34 +867,10 @@ class flat_tree
    BOOST_CONTAINER_FORCEINLINE const_iterator lower_bound(const key_type& k) const
    {  return this->priv_lower_bound(this->cbegin(), this->cend(), k);  }
 
-   template<class K>
-   BOOST_CONTAINER_FORCEINLINE 
-      typename dtl::enable_if_transparent<key_compare, K, iterator>::type
-         lower_bound(const K& k)
-   {  return this->priv_lower_bound(this->begin(), this->end(), k);  }
-
-   template<class K>
-   BOOST_CONTAINER_FORCEINLINE 
-      typename dtl::enable_if_transparent<key_compare, K, const_iterator>::type
-         lower_bound(const K& k) const
-   {  return this->priv_lower_bound(this->cbegin(), this->cend(), k);  }
-
    BOOST_CONTAINER_FORCEINLINE iterator upper_bound(const key_type& k)
    {  return this->priv_upper_bound(this->begin(), this->end(), k);  }
 
    BOOST_CONTAINER_FORCEINLINE const_iterator upper_bound(const key_type& k) const
-   {  return this->priv_upper_bound(this->cbegin(), this->cend(), k);  }
-
-   template<class K>
-   BOOST_CONTAINER_FORCEINLINE
-      typename dtl::enable_if_transparent<key_compare, K,iterator>::type
-   upper_bound(const K& k)
-   {  return this->priv_upper_bound(this->begin(), this->end(), k);  }
-
-   template<class K>
-   BOOST_CONTAINER_FORCEINLINE
-      typename dtl::enable_if_transparent<key_compare, K,const_iterator>::type
-         upper_bound(const K& k) const
    {  return this->priv_upper_bound(this->cbegin(), this->cend(), k);  }
 
    BOOST_CONTAINER_FORCEINLINE std::pair<iterator,iterator> equal_range(const key_type& k)
@@ -1296,83 +879,67 @@ class flat_tree
    BOOST_CONTAINER_FORCEINLINE std::pair<const_iterator, const_iterator> equal_range(const key_type& k) const
    {  return this->priv_equal_range(this->cbegin(), this->cend(), k);  }
 
-   template<class K>
-   BOOST_CONTAINER_FORCEINLINE
-      typename dtl::enable_if_transparent<key_compare, K,std::pair<iterator,iterator> >::type
-         equal_range(const K& k)
-   {  return this->priv_equal_range(this->begin(), this->end(), k);  }
-
-   template<class K>
-   BOOST_CONTAINER_FORCEINLINE
-      typename dtl::enable_if_transparent<key_compare, K,std::pair<const_iterator,const_iterator> >::type
-         equal_range(const K& k) const
-   {  return this->priv_equal_range(this->cbegin(), this->cend(), k);  }
-
-
    BOOST_CONTAINER_FORCEINLINE std::pair<iterator, iterator> lower_bound_range(const key_type& k)
    {  return this->priv_lower_bound_range(this->begin(), this->end(), k);  }
 
    BOOST_CONTAINER_FORCEINLINE std::pair<const_iterator, const_iterator> lower_bound_range(const key_type& k) const
    {  return this->priv_lower_bound_range(this->cbegin(), this->cend(), k);  }
 
-   template<class K>
-   BOOST_CONTAINER_FORCEINLINE
-      typename dtl::enable_if_transparent<key_compare, K,std::pair<iterator,iterator> >::type
-         lower_bound_range(const K& k)
-   {  return this->priv_lower_bound_range(this->begin(), this->end(), k);  }
-
-   template<class K>
-   BOOST_CONTAINER_FORCEINLINE
-      typename dtl::enable_if_transparent<key_compare, K,std::pair<const_iterator,const_iterator> >::type
-         lower_bound_range(const K& k) const
-   {  return this->priv_lower_bound_range(this->cbegin(), this->cend(), k);  }
-
    BOOST_CONTAINER_FORCEINLINE size_type capacity() const
-   {
-      const bool value = boost::container::dtl::
-         has_member_function_callable_with_capacity<container_type>::value;
-      return (flat_tree_capacity)(this->m_data.m_seq, dtl::bool_<value>());
-   }
+   { return this->m_data.m_seq.capacity(); }
 
    BOOST_CONTAINER_FORCEINLINE void reserve(size_type cnt)
-   {
-      const bool value = boost::container::dtl::
-         has_member_function_callable_with_reserve<container_type, size_type>::value;
-      (flat_tree_reserve)(this->m_data.m_seq, cnt, dtl::bool_<value>());
-   }
+   { this->m_data.m_seq.reserve(cnt);   }
 
-   BOOST_CONTAINER_FORCEINLINE container_type extract_sequence()
+   BOOST_CONTAINER_FORCEINLINE sequence_type extract_sequence()
    {
       return boost::move(m_data.m_seq);
    }
 
-   BOOST_CONTAINER_FORCEINLINE container_type &get_sequence_ref()
+   BOOST_CONTAINER_FORCEINLINE sequence_type &get_sequence_ref()
    {
       return m_data.m_seq;
    }
 
-   BOOST_CONTAINER_FORCEINLINE void adopt_sequence_equal(BOOST_RV_REF(container_type) seq)
+   void adopt_sequence_equal(BOOST_RV_REF(sequence_type) seq)
    {
-      (flat_tree_adopt_sequence_equal)( m_data.m_seq, boost::move(seq), this->priv_value_comp()
-         , dtl::bool_<is_contiguous_container<container_type>::value>());
+      sequence_type &tseq = m_data.m_seq;
+      boost::movelib::adaptive_sort
+         ( boost::movelib::iterator_to_raw_pointer(seq.begin())
+         , boost::movelib::iterator_to_raw_pointer(seq.end())
+         , this->priv_value_comp()
+         , boost::movelib::iterator_to_raw_pointer(tseq.begin() + tseq.size())
+         , tseq.capacity() - tseq.size());
+      tseq = boost::move(seq);
    }
 
-   BOOST_CONTAINER_FORCEINLINE void adopt_sequence_unique(BOOST_RV_REF(container_type) seq)
-   {
-      (flat_tree_adopt_sequence_unique)(m_data.m_seq, boost::move(seq), this->priv_value_comp()
-         , dtl::bool_<is_contiguous_container<container_type>::value>());
-   }
-
-   void adopt_sequence_equal(ordered_range_t, BOOST_RV_REF(container_type) seq)
+   void adopt_sequence_equal(ordered_range_t, BOOST_RV_REF(sequence_type) seq)
    {
       BOOST_ASSERT((is_sorted)(seq.cbegin(), seq.cend(), this->priv_value_comp()));
-      m_data.m_seq = boost::move(seq);
+      sequence_type &tseq = m_data.m_seq;
+      tseq = boost::move(seq);
    }
 
-   void adopt_sequence_unique(ordered_unique_range_t, BOOST_RV_REF(container_type) seq)
+   void adopt_sequence_unique(BOOST_RV_REF(sequence_type) seq)
+   {
+      sequence_type &tseq = m_data.m_seq;
+      boost::movelib::adaptive_sort
+         ( boost::movelib::iterator_to_raw_pointer(seq.begin())
+         , boost::movelib::iterator_to_raw_pointer(seq.end())
+         , this->priv_value_comp()
+         , boost::movelib::iterator_to_raw_pointer(tseq.begin() + tseq.size())
+         , tseq.capacity() - tseq.size());
+      seq.erase( boost::movelib::unique
+                  (seq.begin(), seq.end(), boost::movelib::negate<value_compare>(this->m_data.get_comp()))
+               , seq.cend());
+      tseq = boost::move(seq);
+   }
+
+   void adopt_sequence_unique(ordered_unique_range_t, BOOST_RV_REF(sequence_type) seq)
    {
       BOOST_ASSERT((is_sorted_and_unique)(seq.cbegin(), seq.cend(), this->priv_value_comp()));
-      m_data.m_seq = boost::move(seq);
+      sequence_type &tseq = m_data.m_seq;
+      tseq = boost::move(seq);
    }
 
    BOOST_CONTAINER_FORCEINLINE friend bool operator==(const flat_tree& x, const flat_tree& y)
@@ -1410,10 +977,14 @@ class flat_tree
       //for the constructor
       //Call end() every iteration as reallocation might have invalidated iterators
       if(unique_insertion){
-         this->insert_unique(first, last);
+         for ( ; first != last; ++first){
+            this->insert_unique(this->cend(), *first);
+         }
       }
       else{
-         this->insert_equal (first, last);
+         for ( ; first != last; ++first){
+            this->insert_equal(this->cend(), *first);
+         }
       }
    }
 
@@ -1421,6 +992,11 @@ class flat_tree
    {
       return (this->begin() <= pos) && (pos <= this->end());
    }
+
+   struct insert_commit_data
+   {
+      const_iterator position;
+   };
 
    // insert/erase
    void priv_insert_equal_prepare
@@ -1516,9 +1092,9 @@ class flat_tree
          , boost::forward<Convertible>(convertible));
    }
 
-   template <class RanIt, class K>
+   template <class RanIt>
    RanIt priv_lower_bound(RanIt first, const RanIt last,
-                          const K & key) const
+                          const key_type & key) const
    {
       const Compare &key_cmp = this->m_data.get_comp();
       KeyOfValue key_extract;
@@ -1541,9 +1117,9 @@ class flat_tree
       return first;
    }
 
-   template <class RanIt, class K>
+   template <class RanIt>
    RanIt priv_upper_bound
-      (RanIt first, const RanIt last,const K & key) const
+      (RanIt first, const RanIt last,const key_type & key) const
    {
       const Compare &key_cmp = this->m_data.get_comp();
       KeyOfValue key_extract;
@@ -1566,9 +1142,9 @@ class flat_tree
       return first;
    }
 
-   template <class RanIt, class K>
+   template <class RanIt>
    std::pair<RanIt, RanIt>
-      priv_equal_range(RanIt first, RanIt last, const K& key) const
+      priv_equal_range(RanIt first, RanIt last, const key_type& key) const
    {
       const Compare &key_cmp = this->m_data.get_comp();
       KeyOfValue key_extract;
@@ -1599,34 +1175,53 @@ class flat_tree
       return std::pair<RanIt, RanIt>(first, first);
    }
 
-   template<class RanIt, class K>
-   std::pair<RanIt, RanIt> priv_lower_bound_range(RanIt first, RanIt last, const K& k) const
+   template<class RanIt>
+   std::pair<RanIt, RanIt> priv_lower_bound_range(RanIt first, RanIt last, const key_type& k) const
    {
       const Compare &key_cmp = this->m_data.get_comp();
       KeyOfValue key_extract;
       RanIt lb(this->priv_lower_bound(first, last, k)), ub(lb);
-      if(lb != last && !key_cmp(k, key_extract(*lb))){
+      if(lb != last && static_cast<difference_type>(!key_cmp(k, key_extract(*lb)))){
          ++ub;
       }
       return std::pair<RanIt, RanIt>(lb, ub);
    }
+
+   template<class InIt>
+   void priv_insert_equal_loop(InIt first, InIt last)
+   {
+      for ( ; first != last; ++first){
+         this->insert_equal(*first);
+      }
+   }
+
+   template<class InIt>
+   void priv_insert_equal_loop_ordered(InIt first, InIt last)
+   {
+      const_iterator pos(this->cend());
+      for ( ; first != last; ++first){
+         //If ordered, then try hint version
+         //to achieve constant-time complexity per insertion
+         //in some cases
+         pos = this->insert_equal(pos, *first);
+         ++pos;
+      }
+   }
 };
 
-}  //namespace dtl {
+}  //namespace container_detail {
 
 }  //namespace container {
 
 //!has_trivial_destructor_after_move<> == true_type
 //!specialization for optimizations
 template <class T, class KeyOfValue,
-class Compare, class AllocatorOrContainer>
-struct has_trivial_destructor_after_move<boost::container::dtl::flat_tree<T, KeyOfValue, Compare, AllocatorOrContainer> >
+class Compare, class Allocator>
+struct has_trivial_destructor_after_move<boost::container::container_detail::flat_tree<T, KeyOfValue, Compare, Allocator> >
 {
-   typedef boost::container::dtl::flat_tree<T, KeyOfValue, Compare, AllocatorOrContainer> flat_tree;
-   typedef typename flat_tree::container_type container_type;
-   typedef typename flat_tree::key_compare key_compare;
-   static const bool value = ::boost::has_trivial_destructor_after_move<container_type>::value &&
-                             ::boost::has_trivial_destructor_after_move<key_compare>::value;
+   typedef typename ::boost::container::allocator_traits<Allocator>::pointer pointer;
+   static const bool value = ::boost::has_trivial_destructor_after_move<Allocator>::value &&
+                             ::boost::has_trivial_destructor_after_move<pointer>::value;
 };
 
 }  //namespace boost {

@@ -191,7 +191,7 @@ namespace boost { namespace spirit { namespace karma { namespace detail
        // wchar_t is only 16-bits on Windows. If BOOST_SPIRIT_UNICODE is
        // defined, the character type is 32-bits wide so we need to make
        // sure the buffer is at least that wide.
-#if (defined(_MSC_VER) || defined(__SIZEOF_WCHAR_T__) && __SIZEOF_WCHAR_T__ == 2) && defined(BOOST_SPIRIT_UNICODE)
+#if defined(BOOST_MSVC) && defined(BOOST_SPIRIT_UNICODE)
        typedef spirit::char_encoding::unicode::char_type buffer_char_type;
 #else
        typedef wchar_t buffer_char_type;
@@ -304,7 +304,7 @@ namespace boost { namespace spirit { namespace karma { namespace detail
     struct no_buffering_policy
     {
         no_buffering_policy() {}
-        no_buffering_policy(no_buffering_policy const&) {}
+        no_buffering_policy(no_counting_policy const&) {}
 
         template <typename T>
         bool output(T const& /*value*/) 
@@ -383,7 +383,7 @@ namespace boost { namespace spirit { namespace karma { namespace detail
           , output_iterator<OutputIterator, Properties, Derived>
         >::type most_derived_type;
 
-        static const generator_properties::enum_type properties = static_cast<generator_properties::enum_type>(Properties::value);
+        enum { properties = Properties::value };
 
         typedef typename mpl::if_c<
             (properties & generator_properties::tracking) ? true : false

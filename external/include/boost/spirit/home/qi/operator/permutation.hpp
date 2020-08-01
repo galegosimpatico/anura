@@ -4,8 +4,8 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
-#ifndef BOOST_SPIRIT_QI_OPERATOR_PERMUTATION_HPP
-#define BOOST_SPIRIT_QI_OPERATOR_PERMUTATION_HPP
+#if !defined(SPIRIT_PERMUTATION_OR_MARCH_13_2007_1145PM)
+#define SPIRIT_PERMUTATION_OR_MARCH_13_2007_1145PM
 
 #if defined(_MSC_VER)
 #pragma once
@@ -21,9 +21,8 @@
 #include <boost/spirit/home/support/info.hpp>
 #include <boost/fusion/include/size.hpp>
 #include <boost/optional.hpp>
+#include <boost/foreach.hpp>
 #include <boost/array.hpp>
-#include <boost/proto/operators.hpp>
-#include <boost/proto/tags.hpp>
 
 namespace boost { namespace spirit
 {
@@ -77,7 +76,10 @@ namespace boost { namespace spirit { namespace qi
                 f(first, last, context, skipper);
 
             boost::array<bool, fusion::result_of::size<Elements>::value> flags;
-            flags.fill(false);
+            BOOST_FOREACH(bool& taken, flags)
+            {
+                taken = false;
+            }
 
             // wrap the attribute in a tuple if it is not a tuple
             typename traits::wrap_if_not_tuple<Attribute>::type attr_local(attr_);

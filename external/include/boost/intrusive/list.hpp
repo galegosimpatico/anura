@@ -215,15 +215,8 @@ class list_impl
       this->insert(this->cend(), b, e);
    }
 
-   //! <b>Effects</b>: Constructs a container moving resources from another container.
-   //!   Internal value traits are move constructed and
-   //!   nodes belonging to x (except the node representing the "end") are linked to *this.
+   //! <b>Effects</b>: to-do
    //!
-   //! <b>Complexity</b>: Constant.
-   //!
-   //! <b>Throws</b>: If value_traits::node_traits::node's
-   //!   move constructor throws (this does not happen with predefined Boost.Intrusive hooks)
-   //!   or the move constructor of value traits throws.
    list_impl(BOOST_RV_REF(list_impl) x)
       : data_(::boost::move(x.priv_value_traits()))
    {
@@ -233,7 +226,7 @@ class list_impl
       this->swap(x);
    }
 
-   //! <b>Effects</b>: Equivalent to swap
+   //! <b>Effects</b>: to-do
    //!
    list_impl& operator=(BOOST_RV_REF(list_impl) x)
    {  this->swap(x); return *this;  }
@@ -1471,38 +1464,38 @@ class list
    typedef typename Base::iterator              iterator;
    typedef typename Base::const_iterator        const_iterator;
 
-   BOOST_INTRUSIVE_FORCEINLINE list()
+   list()
       :  Base()
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE explicit list(const value_traits &v_traits)
+   explicit list(const value_traits &v_traits)
       :  Base(v_traits)
    {}
 
    template<class Iterator>
-   BOOST_INTRUSIVE_FORCEINLINE list(Iterator b, Iterator e, const value_traits &v_traits = value_traits())
+   list(Iterator b, Iterator e, const value_traits &v_traits = value_traits())
       :  Base(b, e, v_traits)
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE list(BOOST_RV_REF(list) x)
+   list(BOOST_RV_REF(list) x)
       :  Base(BOOST_MOVE_BASE(Base, x))
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE list& operator=(BOOST_RV_REF(list) x)
+   list& operator=(BOOST_RV_REF(list) x)
    {  return static_cast<list &>(this->Base::operator=(BOOST_MOVE_BASE(Base, x)));  }
 
    template <class Cloner, class Disposer>
-   BOOST_INTRUSIVE_FORCEINLINE void clone_from(const list &src, Cloner cloner, Disposer disposer)
+   void clone_from(const list &src, Cloner cloner, Disposer disposer)
    {  Base::clone_from(src, cloner, disposer);  }
 
    template <class Cloner, class Disposer>
-   BOOST_INTRUSIVE_FORCEINLINE void clone_from(BOOST_RV_REF(list) src, Cloner cloner, Disposer disposer)
+   void clone_from(BOOST_RV_REF(list) src, Cloner cloner, Disposer disposer)
    {  Base::clone_from(BOOST_MOVE_BASE(Base, src), cloner, disposer);  }
 
-   BOOST_INTRUSIVE_FORCEINLINE static list &container_from_end_iterator(iterator end_iterator)
+   static list &container_from_end_iterator(iterator end_iterator)
    {  return static_cast<list &>(Base::container_from_end_iterator(end_iterator));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static const list &container_from_end_iterator(const_iterator end_iterator)
+   static const list &container_from_end_iterator(const_iterator end_iterator)
    {  return static_cast<const list &>(Base::container_from_end_iterator(end_iterator));   }
 };
 

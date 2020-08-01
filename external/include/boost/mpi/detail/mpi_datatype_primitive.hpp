@@ -21,7 +21,6 @@ namespace std{
 
 #include <boost/mpi/datatype_fwd.hpp>
 #include <boost/mpi/exception.hpp>
-#include <boost/mpi/detail/antiques.hpp>
 #include <boost/throw_exception.hpp>
 #include <boost/assert.hpp>
 #include <boost/mpl/placeholders.hpp>
@@ -50,7 +49,7 @@ public:
      : is_committed(false),
        origin()
     {
-#if BOOST_MPI_VERSION >= 2
+#if defined(MPI_VERSION) && MPI_VERSION >= 2
       BOOST_MPI_CHECK_RESULT(MPI_Get_address,(const_cast<void*>(orig), &origin));
 #else
       BOOST_MPI_CHECK_RESULT(MPI_Address,(const_cast<void*>(orig), &origin));
@@ -77,7 +76,7 @@ public:
     {
       if (!is_committed)
       {
-#if BOOST_MPI_VERSION >= 2
+#if defined(MPI_VERSION) && MPI_VERSION >= 2
        BOOST_MPI_CHECK_RESULT(MPI_Type_create_struct,
                     (
                       addresses.size(),
@@ -120,7 +119,7 @@ private:
       // store address, type and length
 
       MPI_Aint a;
-#if BOOST_MPI_VERSION >= 2
+#if defined(MPI_VERSION) && MPI_VERSION >= 2
      BOOST_MPI_CHECK_RESULT(MPI_Get_address,(const_cast<void*>(p), &a));
 #else
      BOOST_MPI_CHECK_RESULT(MPI_Address,(const_cast<void*>(p), &a));
@@ -128,12 +127,6 @@ private:
       addresses.push_back(a-origin);
       types.push_back(t);
       lengths.push_back(l);
-    }
-
-    template <class T>
-    static T* get_data(std::vector<T>& v)
-    {
-      return v.empty() ? 0 : &(v[0]);
     }
 
     std::vector<MPI_Aint> addresses;

@@ -89,12 +89,12 @@ public:
 #endif
 
 // error reporting from the re2c generated lexer
-    static int report_error(Scanner<IteratorT> const* s, int code, char const *, ...);
+    static int report_error(Scanner const* s, int code, char const *, ...);
 
 private:
     static char const *tok_names[];
 
-    Scanner<IteratorT> scanner;
+    Scanner scanner;
     string_type filename;
     string_type value;
     bool at_eof;
@@ -117,13 +117,18 @@ inline
 lexer<IteratorT, PositionT, TokenT>::lexer(IteratorT const &first,
         IteratorT const &last, PositionT const &pos,
         boost::wave::language_support language_)
-    : scanner(first, last),
-      filename(pos.get_file()), at_eof(false), language(language_)
+  : filename(pos.get_file()), at_eof(false), language(language_)
 #if BOOST_WAVE_SUPPORT_THREADING != 0
   , cache()
 #endif
 {
     using namespace std;        // some systems have memset in std
+    memset(&scanner, '\0', sizeof(Scanner));
+    scanner.eol_offsets = aq_create();
+    if (first != last) {
+        scanner.first = scanner.act = (uchar *)&(*first);
+        scanner.last = scanner.first + std::distance(first, last);
+    }
     scanner.line = pos.get_line();
     scanner.column = scanner.curr_column = pos.get_column();
     scanner.error_proc = report_error;
@@ -160,6 +165,7 @@ inline
 lexer<IteratorT, PositionT, TokenT>::~lexer()
 {
     using namespace std;        // some systems have free in std
+    aq_terminate(scanner.eol_offsets);
     free(scanner.bot);
 }
 
@@ -175,7 +181,7 @@ lexer<IteratorT, PositionT, TokenT>::get(TokenT& result)
     std::size_t actline = scanner.line;
     token_id id = token_id(scan(&scanner));
 
-    switch (id) {
+    switch (static_cast<unsigned int>(id)) {
     case T_IDENTIFIER:
     // test identifier characters for validity (throws if invalid chars found)
         value = string_type((char const *)scanner.tok,
@@ -196,6 +202,7 @@ lexer<IteratorT, PositionT, TokenT>::get(TokenT& result)
             impl::validate_literal(value, actline, scanner.column, filename);
         break;
 
+#if BOOST_WAVE_SUPPORT_INCLUDE_NEXT != 0
     case T_PP_HHEADER:
     case T_PP_QHEADER:
     case T_PP_INCLUDE:
@@ -204,14 +211,13 @@ lexer<IteratorT, PositionT, TokenT>::get(TokenT& result)
           value = string_type((char const *)scanner.tok,
               scanner.cur-scanner.tok);
 
-#if BOOST_WAVE_SUPPORT_INCLUDE_NEXT != 0
       // Skip '#' and whitespace and see whether we find an 'include_next' here.
           typename string_type::size_type start = value.find("include");
           if (value.compare(start, 12, "include_next", 12) == 0)
               id = token_id(id | AltTokenType);
-#endif
           break;
       }
+#endif
 
     case T_LONGINTLIT:  // supported in C++11, C99 and long_long mode
         value = string_type((char const *)scanner.tok,
@@ -301,7 +307,7 @@ lexer<IteratorT, PositionT, TokenT>::get(TokenT& result)
 
 template <typename IteratorT, typename PositionT, typename TokenT>
 inline int
-lexer<IteratorT, PositionT, TokenT>::report_error(Scanner<IteratorT> const *s, int errcode,
+lexer<IteratorT, PositionT, TokenT>::report_error(Scanner const *s, int errcode,
     char const *msg, ...)
 {
     BOOST_ASSERT(0 != s);

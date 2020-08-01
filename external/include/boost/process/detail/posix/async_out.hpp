@@ -19,8 +19,6 @@
 #include <memory>
 #include <exception>
 #include <future>
-#include <array>
-#include <boost/process/detail/used_handles.hpp>
 
 namespace boost { namespace process { namespace detail { namespace posix {
 
@@ -47,23 +45,11 @@ inline int apply_out_handles(int handle, std::integral_constant<int, 1>, std::in
 
 template<int p1, int p2, typename Buffer>
 struct async_out_buffer : ::boost::process::detail::posix::handler_base_ext,
-                          ::boost::process::detail::posix::require_io_context,
-                          ::boost::process::detail::uses_handles
+                          ::boost::process::detail::posix::require_io_service
 {
     Buffer & buf;
 
     std::shared_ptr<boost::process::async_pipe> pipe;
-
-    std::array<int, 4> get_used_handles()
-    {
-        const auto pp1 = p1 != -1 ? p1 : p2;
-        const auto pp2 = p2 != -1 ? p2 : p1;
-
-        if (pipe)
-            return {pipe->native_source(), pipe->native_sink(), pp1, pp2};
-        else  //if pipe is not constructed, limit_ds is invoked before -> this also means on_exec_setup gets invoked before.
-            return {pp1, pp2, pp1, pp2};
-    }
 
 
     async_out_buffer(Buffer & buf) : buf(buf)
@@ -75,7 +61,7 @@ struct async_out_buffer : ::boost::process::detail::posix::handler_base_ext,
     {
         auto  pipe              = this->pipe;
         boost::asio::async_read(*pipe, buf,
-                [pipe](const boost::system::error_code&, std::size_t){});
+                [pipe](const boost::system::error_code&, std::size_t size){});
 
         this->pipe = nullptr;
         std::move(*pipe).sink().close();
@@ -90,7 +76,7 @@ struct async_out_buffer : ::boost::process::detail::posix::handler_base_ext,
     template<typename Executor>
     void on_setup(Executor & exec)
     {
-        pipe = std::make_shared<boost::process::async_pipe>(get_io_context(exec.seq));
+        pipe = std::make_shared<boost::process::async_pipe>(get_io_service(exec.seq));
     }
 
 
@@ -103,8 +89,6 @@ struct async_out_buffer : ::boost::process::detail::posix::handler_base_ext,
             exec.set_error(::boost::process::detail::get_last_error(), "dup2() failed");
 
         ::close(pipe->native_sink());
-        ::close(pipe->native_source());
-
     }
 };
 
@@ -113,7 +97,7 @@ struct async_out_buffer : ::boost::process::detail::posix::handler_base_ext,
 
 template<int p1, int p2, typename Type>
 struct async_out_future : ::boost::process::detail::posix::handler_base_ext,
-                          ::boost::process::detail::posix::require_io_context
+                          ::boost::process::detail::posix::require_io_service
 {
     std::shared_ptr<std::promise<Type>> promise = std::make_shared<std::promise<Type>>();
 
@@ -126,35 +110,32 @@ struct async_out_future : ::boost::process::detail::posix::handler_base_ext,
         fut = promise->get_future();
     }
     template <typename Executor>
-    inline void on_success(Executor &)
+    inline void on_success(Executor &exec)
     {
-        auto pipe_ = this->pipe;
+        auto pipe = this->pipe;
 
-        auto buffer_  = this->buffer;
-        auto promise_ = this->promise;
+        auto buffer  = this->buffer;
+        auto promise = this->promise;
 
-        boost::asio::async_read(*pipe_, *buffer_,
-                [pipe_, buffer_, promise_](const boost::system::error_code& ec, std::size_t)
+        boost::asio::async_read(*pipe, *buffer,
+                [pipe, buffer, promise](const boost::system::error_code& ec, std::size_t size)
                 {
                     if (ec && (ec.value() != ENOENT))
                     {
                         std::error_code e(ec.value(), std::system_category());
-                        promise_->set_exception(std::make_exception_ptr(process_error(e)));
+                        promise->set_exception(std::make_exception_ptr(process_error(e)));
                     }
                     else
                     {
-                        std::istream is (buffer_.get());
+                        std::istream is (buffer.get());
                         Type arg;
-                        if (buffer_->size() > 0)
-                        {
-                            arg.resize(buffer_->size());
-                            is.read(&*arg.begin(), buffer_->size());
-                        }
-                        promise_->set_value(std::move(arg));
+                        arg.resize(buffer->size());
+                        is.read(&*arg.begin(), buffer->size());
+                        promise->set_value(std::move(arg));
                     }
                 });
 
-        std::move(*pipe_).sink().close();
+        std::move(*pipe).sink().close();
         this->pipe = nullptr;
     }
 
@@ -167,7 +148,7 @@ struct async_out_future : ::boost::process::detail::posix::handler_base_ext,
     template<typename Executor>
     void on_setup(Executor & exec)
     {
-        pipe = std::make_shared<boost::process::async_pipe>(get_io_context(exec.seq));
+        pipe = std::make_shared<boost::process::async_pipe>(get_io_service(exec.seq));
     }
 
     template <typename Executor>
@@ -180,7 +161,6 @@ struct async_out_future : ::boost::process::detail::posix::handler_base_ext,
             exec.set_error(::boost::process::detail::get_last_error(), "dup2() failed");
 
         ::close(pipe->native_sink());
-        ::close(pipe->native_source());
     }
 
 };

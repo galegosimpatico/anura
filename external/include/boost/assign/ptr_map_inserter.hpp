@@ -18,15 +18,6 @@
 #include <boost/assign/list_inserter.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 #include <boost/type_traits/remove_pointer.hpp>
-#include <boost/move/utility.hpp>
-
-#if defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES) || defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-
-#include <boost/preprocessor/repetition/enum_binary_params.hpp>
-#include <boost/preprocessor/repetition/enum_params.hpp>
-#include <boost/preprocessor/iteration/local.hpp>
-
-#endif
 
 namespace boost
 {
@@ -47,9 +38,7 @@ namespace assign
         
         ptr_map_inserter( PtrMap& m ) : m_( m )
         {}
-
-#if defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES) || defined(BOOST_NO_CXX11_RVALUE_REFERENCES)       
-
+        
         template< class Key >
         ptr_map_inserter& operator()( const Key& t )
         {
@@ -79,16 +68,6 @@ namespace assign
         
 #include BOOST_PP_LOCAL_ITERATE()
 
-#else
-    template< class Key, class... Ts >
-    ptr_map_inserter& operator()(Key&& k, Ts&&... ts)
-    {
-        key_type key(boost::forward<Key>(k));
-        m_.insert(key, new obj_type(boost::forward<Ts>(ts)...));
-        return *this;
-    }
-
-#endif
     private:
 
         ptr_map_inserter& operator=( const ptr_map_inserter& );
@@ -116,13 +95,9 @@ namespace assign
 } // namespace 'assign'
 } // namespace 'boost'
 
-#if defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES) || defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-
 #undef BOOST_ASSIGN_PARAMS1
 #undef BOOST_ASSIGN_PARAMS2
 #undef BOOST_ASSIGN_PARAMS3
 #undef BOOST_ASSIGN_MAX_PARAMETERS
-
-#endif
 
 #endif

@@ -1,4 +1,4 @@
-/* Copyright 2003-2018 Joaquin M Lopez Munoz.
+/* Copyright 2003-2017 Joaquin M Lopez Munoz.
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
  * http://www.boost.org/LICENSE_1_0.txt)
@@ -29,9 +29,7 @@ namespace detail{
 template<typename OrderedIndexNodeImpl>
 struct ranked_node:OrderedIndexNodeImpl
 {
-  typedef typename OrderedIndexNodeImpl::size_type size_type;
-
-  size_type size;
+  std::size_t size;
 };
 
 template<typename OrderedIndexImpl>
@@ -47,17 +45,16 @@ public:
   typedef typename super::ctor_args_list ctor_args_list;
   typedef typename super::allocator_type allocator_type;
   typedef typename super::iterator       iterator;
-  typedef typename super::size_type      size_type;
 
   /* rank operations */
 
-  iterator nth(size_type n)const
+  iterator nth(std::size_t n)const
   {
     return this->make_iterator(node_type::from_impl(
       ranked_index_nth(n,this->header()->impl())));
   }
 
-  size_type rank(iterator position)const
+  std::size_t rank(iterator position)const
   {
     BOOST_MULTI_INDEX_CHECK_VALID_ITERATOR(position);
     BOOST_MULTI_INDEX_CHECK_IS_OWNER(position,*this);
@@ -67,14 +64,14 @@ public:
   }
 
   template<typename CompatibleKey>
-  size_type find_rank(const CompatibleKey& x)const
+  std::size_t find_rank(const CompatibleKey& x)const
   {
     return ranked_index_find_rank(
       this->root(),this->header(),this->key,x,this->comp_);
   }
 
   template<typename CompatibleKey,typename CompatibleCompare>
-  size_type find_rank(
+  std::size_t find_rank(
     const CompatibleKey& x,const CompatibleCompare& comp)const
   {
     return ranked_index_find_rank(
@@ -82,14 +79,14 @@ public:
   }
 
   template<typename CompatibleKey>
-  size_type lower_bound_rank(const CompatibleKey& x)const
+  std::size_t lower_bound_rank(const CompatibleKey& x)const
   {
     return ranked_index_lower_bound_rank(
       this->root(),this->header(),this->key,x,this->comp_);
   }
 
   template<typename CompatibleKey,typename CompatibleCompare>
-  size_type lower_bound_rank(
+  std::size_t lower_bound_rank(
     const CompatibleKey& x,const CompatibleCompare& comp)const
   {
     return ranked_index_lower_bound_rank(
@@ -97,14 +94,14 @@ public:
   }
 
   template<typename CompatibleKey>
-  size_type upper_bound_rank(const CompatibleKey& x)const
+  std::size_t upper_bound_rank(const CompatibleKey& x)const
   {
     return ranked_index_upper_bound_rank(
       this->root(),this->header(),this->key,x,this->comp_);
   }
 
   template<typename CompatibleKey,typename CompatibleCompare>
-  size_type upper_bound_rank(
+  std::size_t upper_bound_rank(
     const CompatibleKey& x,const CompatibleCompare& comp)const
   {
     return ranked_index_upper_bound_rank(
@@ -112,7 +109,7 @@ public:
   }
 
   template<typename CompatibleKey>
-  std::pair<size_type,size_type> equal_range_rank(
+  std::pair<std::size_t,std::size_t> equal_range_rank(
     const CompatibleKey& x)const
   {
     return ranked_index_equal_range_rank(
@@ -120,7 +117,7 @@ public:
   }
 
   template<typename CompatibleKey,typename CompatibleCompare>
-  std::pair<size_type,size_type> equal_range_rank(
+  std::pair<std::size_t,std::size_t> equal_range_rank(
     const CompatibleKey& x,const CompatibleCompare& comp)const
   {
     return ranked_index_equal_range_rank(
@@ -128,7 +125,7 @@ public:
   }
 
   template<typename LowerBounder,typename UpperBounder>
-  std::pair<size_type,size_type>
+  std::pair<std::size_t,std::size_t>
   range_rank(LowerBounder lower,UpperBounder upper)const
   {
     typedef typename mpl::if_<
@@ -160,15 +157,15 @@ protected:
 
 private:
   template<typename LowerBounder,typename UpperBounder>
-  std::pair<size_type,size_type>
+  std::pair<std::size_t,std::size_t>
   range_rank(LowerBounder lower,UpperBounder upper,none_unbounded_tag)const
   {
     node_type* y=this->header();
     node_type* z=this->root();
 
-    if(!z)return std::pair<size_type,size_type>(0,0);
+    if(!z)return std::pair<std::size_t,std::size_t>(0,0);
 
-    size_type s=z->impl()->size;
+    std::size_t s=z->impl()->size;
 
     do{
       if(!lower(this->key(z->value()))){
@@ -180,7 +177,7 @@ private:
         z=node_type::from_impl(z->left());
       }
       else{
-        return std::pair<size_type,size_type>(
+        return std::pair<std::size_t,std::size_t>(
           s-z->impl()->size+
             lower_range_rank(node_type::from_impl(z->left()),z,lower),
           s-ranked_node_size(z->right())+
@@ -188,41 +185,41 @@ private:
       }
     }while(z);
 
-    return std::pair<size_type,size_type>(s,s);
+    return std::pair<std::size_t,std::size_t>(s,s);
   }
 
   template<typename LowerBounder,typename UpperBounder>
-  std::pair<size_type,size_type>
+  std::pair<std::size_t,std::size_t>
   range_rank(LowerBounder,UpperBounder upper,lower_unbounded_tag)const
   {
-    return std::pair<size_type,size_type>(
+    return std::pair<std::size_t,std::size_t>(
       0,
       upper_range_rank(this->root(),this->header(),upper));
   }
 
   template<typename LowerBounder,typename UpperBounder>
-  std::pair<size_type,size_type>
+  std::pair<std::size_t,std::size_t>
   range_rank(LowerBounder lower,UpperBounder,upper_unbounded_tag)const
   {
-    return std::pair<size_type,size_type>(
+    return std::pair<std::size_t,std::size_t>(
       lower_range_rank(this->root(),this->header(),lower),
       this->size());
   }
 
   template<typename LowerBounder,typename UpperBounder>
-  std::pair<size_type,size_type>
+  std::pair<std::size_t,std::size_t>
   range_rank(LowerBounder,UpperBounder,both_unbounded_tag)const
   {
-    return std::pair<size_type,size_type>(0,this->size());
+    return std::pair<std::size_t,std::size_t>(0,this->size());
   }
 
   template<typename LowerBounder>
-  size_type
+  std::size_t
   lower_range_rank(node_type* top,node_type* y,LowerBounder lower)const
   {
     if(!top)return 0;
 
-    size_type s=top->impl()->size;
+    std::size_t s=top->impl()->size;
 
     do{
       if(lower(this->key(top->value()))){
@@ -237,12 +234,12 @@ private:
   }
 
   template<typename UpperBounder>
-  size_type
+  std::size_t
   upper_range_rank(node_type* top,node_type* y,UpperBounder upper)const
   {
     if(!top)return 0;
 
-    size_type s=top->impl()->size;
+    std::size_t s=top->impl()->size;
 
     do{
       if(!upper(this->key(top->value()))){

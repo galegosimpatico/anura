@@ -3,8 +3,8 @@
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying 
 //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_SPIRIT_LEX_LEXER_ACTION_HPP
-#define BOOST_SPIRIT_LEX_LEXER_ACTION_HPP
+#if !defined(SPIRIT_LEX_ACTION_NOV_18_2007_0743PM)
+#define SPIRIT_LEX_ACTION_NOV_18_2007_0743PM
 
 #if defined(_MSC_VER)
 #pragma once
@@ -51,8 +51,9 @@ namespace boost { namespace spirit { namespace lex
         Subject subject;
         Action f;
 
+    private:
         // silence MSVC warning C4512: assignment operator could not be generated
-        BOOST_DELETED_FUNCTION(action& operator= (action const&))
+        action& operator= (action const&);
     };
 
 }}}

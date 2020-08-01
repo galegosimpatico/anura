@@ -43,13 +43,6 @@ namespace impl
             return this->cnt;
         }
 
-        // make this accumulator serializeable
-        template<class Archive>
-        void serialize(Archive & ar, const unsigned int file_version)
-        { 
-            ar & cnt;
-        }
-
     private:
         std::size_t cnt;
     };

@@ -126,13 +126,13 @@ struct error_cant_deduce_type {};
     test(unsigned long const&);
 
     template <typename X, typename Y>
-    typename boost::disable_if<
+    typename disable_if<
         is_basic<X>, x_value_type
     >::type
     test(X const&);
 
     template <typename X, typename Y>
-    typename boost::disable_if<
+    typename disable_if<
         mpl::or_<
             is_basic<Y>
           , is_same<Y, asymmetric>

@@ -11,7 +11,7 @@
 
 #include <boost/config.hpp>
 #include <boost/context/detail/invoke.hpp>
-#include <boost/context/fiber.hpp>
+#include <boost/context/continuation.hpp>
 
 #include <boost/coroutine2/detail/config.hpp>
 
@@ -41,12 +41,12 @@ public:
     wrapper( wrapper && other) = default;
     wrapper & operator=( wrapper && other) = default;
 
-    boost::context::fiber
-    operator()( boost::context::fiber && c) {
+    boost::context::continuation
+    operator()( boost::context::continuation && c) {
         return boost::context::detail::invoke(
                 std::move( fn1_),
                 fn2_,
-                std::forward< boost::context::fiber >( c) );
+                std::forward< boost::context::continuation >( c) );
     }
 };
 

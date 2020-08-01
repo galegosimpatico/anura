@@ -20,7 +20,6 @@
 
 // Boost
 #include <boost/mpl/bool.hpp>
-#include <boost/mpl/if.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/type_traits/decay.hpp>
 
@@ -90,19 +89,16 @@ lexicographic_compare( Lhs const& lhs, Rhs const& rhs )
         if( element_ar && !reverse_ar )
             return ar; // a<=b and !(b<=a) => a < b => return true
 
-        if( element_ar || !reverse_ar ) {
+        if( element_ar || !reverse_ar )
             continue; // (a<=b and b<=a) or (!(a<b) and !(b<a)) => a == b => keep looking
-        }
 
         // !(a<=b) and b<=a => b < a => return false
         ar = false;
-        ar.message() << "\nFailure at position " << pos << ":";
-        ar.message() << "\n  - condition [" << tt_detail::print_helper(*first1) << OP::forward() << tt_detail::print_helper(*first2) << "] is false";
-        if(!element_ar.has_empty_message())
-            ar.message() << ": " << element_ar.message();
-        ar.message() << "\n  - inverse condition [" << tt_detail::print_helper(*first2) << OP::forward() << tt_detail::print_helper(*first1) << "] is true";
-        if(!reverse_ar.has_empty_message())
-            ar.message() << ": " << reverse_ar.message();
+        ar.message() << "\nFailure at position " << pos << ": "
+                     << tt_detail::print_helper(*first1)
+                     << OP::revert()
+                     << tt_detail::print_helper(*first2)
+                     << ". " << element_ar.message();
         return ar;
     }
 
@@ -134,8 +130,8 @@ typename boost::enable_if_c<
     assertion_result>::type
 lexicographic_compare( Lhs const& lhs, Rhs const& rhs )
 {
-    typedef typename unit_test::deduce_cstring_transform<Lhs>::type lhs_char_type;
-    typedef typename unit_test::deduce_cstring_transform<Rhs>::type rhs_char_type;
+    typedef typename unit_test::deduce_cstring<Lhs>::type lhs_char_type;
+    typedef typename unit_test::deduce_cstring<Rhs>::type rhs_char_type;
 
     return lexicographic_compare<OP, can_be_equal, prefer_shorter>(
         lhs_char_type(lhs),
@@ -177,13 +173,11 @@ element_compare( Lhs const& lhs, Rhs const& rhs )
             continue;
 
         ar = false;
-        ar.message() << "\n  - mismatch at position " << pos << ": ["
+        ar.message() << "\nMismatch at position " << pos << ": "
                      << tt_detail::print_helper(*left)
-                     << OP::forward()
+                     << OP::revert()
                      << tt_detail::print_helper(*right)
-                     << "] is false";
-        if(!element_ar.has_empty_message())
-            ar.message() << ": " << element_ar.message();
+                     << ". " << element_ar.message();
     }
 
     return ar;
@@ -197,8 +191,8 @@ typename boost::enable_if_c<
     assertion_result>::type
 element_compare( Lhs const& lhs, Rhs const& rhs )
 {
-    typedef typename unit_test::deduce_cstring_transform<Lhs>::type lhs_char_type;
-    typedef typename unit_test::deduce_cstring_transform<Rhs>::type rhs_char_type;
+    typedef typename unit_test::deduce_cstring<Lhs>::type lhs_char_type;
+    typedef typename unit_test::deduce_cstring<Rhs>::type rhs_char_type;
 
     return element_compare<OP>(lhs_char_type(lhs),
                                rhs_char_type(rhs));
@@ -388,16 +382,15 @@ compare_collections( Lhs const& lhs, Rhs const& rhs, boost::type<op::GE<L, R> >*
 // ********* specialization of comparison operators for collections ********* //
 // ************************************************************************** //
 
-#define DEFINE_COLLECTION_COMPARISON( oper, name, rev, name_inverse ) \
+#define DEFINE_COLLECTION_COMPARISON( oper, name, rev )             \
 template<typename Lhs,typename Rhs>                                 \
 struct name<Lhs,Rhs,typename boost::enable_if_c<                    \
     unit_test::is_forward_iterable<Lhs>::value                      \
-    &&   !unit_test::is_cstring_comparable<Lhs>::value              \
+    &&   !unit_test::is_cstring_comparable<Lhs>::value                         \
     && unit_test::is_forward_iterable<Rhs>::value                   \
-    &&   !unit_test::is_cstring_comparable<Rhs>::value>::type> {    \
+    &&   !unit_test::is_cstring_comparable<Rhs>::value>::type> {               \
 public:                                                             \
     typedef assertion_result result_type;                           \
-    typedef name_inverse<Lhs, Rhs> inverse;                         \
     typedef unit_test::bt_iterator_traits<Lhs> t_Lhs_iterator_helper; \
     typedef unit_test::bt_iterator_traits<Rhs> t_Rhs_iterator_helper; \
                                                                     \
@@ -435,8 +428,6 @@ public:                                                             \
             PrevExprType const&,                                    \
             Rhs const& ) {}                                         \
                                                                     \
-    static char const* forward()                                    \
-    { return " " #oper " "; }                                       \
     static char const* revert()                                     \
     { return " " #rev " "; }                                        \
                                                                     \

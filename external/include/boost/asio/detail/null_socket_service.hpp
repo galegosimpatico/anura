@@ -2,7 +2,7 @@
 // detail/null_socket_service.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2020 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -21,8 +21,7 @@
 
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/error.hpp>
-#include <boost/asio/execution_context.hpp>
-#include <boost/asio/post.hpp>
+#include <boost/asio/io_service.hpp>
 #include <boost/asio/socket_base.hpp>
 #include <boost/asio/detail/bind_handler.hpp>
 
@@ -33,8 +32,7 @@ namespace asio {
 namespace detail {
 
 template <typename Protocol>
-class null_socket_service :
-  public execution_context_service_base<null_socket_service<Protocol> >
+class null_socket_service
 {
 public:
   // The protocol type.
@@ -52,13 +50,13 @@ public:
   };
 
   // Constructor.
-  null_socket_service(execution_context& context)
-    : execution_context_service_base<null_socket_service<Protocol> >(context)
+  null_socket_service(boost::asio::io_service& io_service)
+    : io_service_(io_service)
   {
   }
 
   // Destroy all user-defined handler objects owned by the service.
-  void shutdown()
+  void shutdown_service()
   {
   }
 
@@ -119,14 +117,6 @@ public:
   {
     ec = boost::asio::error::operation_not_supported;
     return ec;
-  }
-
-  // Release ownership of the socket.
-  native_handle_type release(implementation_type&,
-      boost::system::error_code& ec)
-  {
-    ec = boost::asio::error::operation_not_supported;
-    return 0;
   }
 
   // Get the native socket representation.
@@ -273,25 +263,23 @@ public:
 
   // Start an asynchronous send. The data being sent must be valid for the
   // lifetime of the asynchronous operation.
-  template <typename ConstBufferSequence, typename Handler, typename IoExecutor>
+  template <typename ConstBufferSequence, typename Handler>
   void async_send(implementation_type&, const ConstBufferSequence&,
-      socket_base::message_flags, Handler& handler, const IoExecutor& io_ex)
+      socket_base::message_flags, Handler& handler)
   {
     boost::system::error_code ec = boost::asio::error::operation_not_supported;
     const std::size_t bytes_transferred = 0;
-    boost::asio::post(io_ex, detail::bind_handler(
-          handler, ec, bytes_transferred));
+    io_service_.post(detail::bind_handler(handler, ec, bytes_transferred));
   }
 
   // Start an asynchronous wait until data can be sent without blocking.
-  template <typename Handler, typename IoExecutor>
+  template <typename Handler>
   void async_send(implementation_type&, const null_buffers&,
-      socket_base::message_flags, Handler& handler, const IoExecutor& io_ex)
+      socket_base::message_flags, Handler& handler)
   {
     boost::system::error_code ec = boost::asio::error::operation_not_supported;
     const std::size_t bytes_transferred = 0;
-    boost::asio::post(io_ex, detail::bind_handler(
-          handler, ec, bytes_transferred));
+    io_service_.post(detail::bind_handler(handler, ec, bytes_transferred));
   }
 
   // Receive some data from the peer. Returns the number of bytes received.
@@ -313,26 +301,23 @@ public:
 
   // Start an asynchronous receive. The buffer for the data being received
   // must be valid for the lifetime of the asynchronous operation.
-  template <typename MutableBufferSequence,
-      typename Handler, typename IoExecutor>
+  template <typename MutableBufferSequence, typename Handler>
   void async_receive(implementation_type&, const MutableBufferSequence&,
-      socket_base::message_flags, Handler& handler, const IoExecutor& io_ex)
+      socket_base::message_flags, Handler& handler)
   {
     boost::system::error_code ec = boost::asio::error::operation_not_supported;
     const std::size_t bytes_transferred = 0;
-    boost::asio::post(io_ex, detail::bind_handler(
-          handler, ec, bytes_transferred));
+    io_service_.post(detail::bind_handler(handler, ec, bytes_transferred));
   }
 
   // Wait until data can be received without blocking.
-  template <typename Handler, typename IoExecutor>
+  template <typename Handler>
   void async_receive(implementation_type&, const null_buffers&,
-      socket_base::message_flags, Handler& handler, const IoExecutor& io_ex)
+      socket_base::message_flags, Handler& handler)
   {
     boost::system::error_code ec = boost::asio::error::operation_not_supported;
     const std::size_t bytes_transferred = 0;
-    boost::asio::post(io_ex, detail::bind_handler(
-          handler, ec, bytes_transferred));
+    io_service_.post(detail::bind_handler(handler, ec, bytes_transferred));
   }
 
   // Receive some data with associated flags. Returns the number of bytes
@@ -357,28 +342,25 @@ public:
 
   // Start an asynchronous receive. The buffer for the data being received
   // must be valid for the lifetime of the asynchronous operation.
-  template <typename MutableBufferSequence,
-      typename Handler, typename IoExecutor>
+  template <typename MutableBufferSequence, typename Handler>
   void async_receive_with_flags(implementation_type&,
       const MutableBufferSequence&, socket_base::message_flags,
-      socket_base::message_flags&, Handler& handler, const IoExecutor& io_ex)
+      socket_base::message_flags&, Handler& handler)
   {
     boost::system::error_code ec = boost::asio::error::operation_not_supported;
     const std::size_t bytes_transferred = 0;
-    boost::asio::post(io_ex, detail::bind_handler(
-          handler, ec, bytes_transferred));
+    io_service_.post(detail::bind_handler(handler, ec, bytes_transferred));
   }
 
   // Wait until data can be received without blocking.
-  template <typename Handler, typename IoExecutor>
-  void async_receive_with_flags(implementation_type&, const null_buffers&,
-      socket_base::message_flags, socket_base::message_flags&,
-      Handler& handler, const IoExecutor& io_ex)
+  template <typename Handler>
+  void async_receive_with_flags(implementation_type&,
+      const null_buffers&, socket_base::message_flags,
+      socket_base::message_flags&, Handler& handler)
   {
     boost::system::error_code ec = boost::asio::error::operation_not_supported;
     const std::size_t bytes_transferred = 0;
-    boost::asio::post(io_ex, detail::bind_handler(
-          handler, ec, bytes_transferred));
+    io_service_.post(detail::bind_handler(handler, ec, bytes_transferred));
   }
 
   // Send a datagram to the specified endpoint. Returns the number of bytes
@@ -403,27 +385,24 @@ public:
 
   // Start an asynchronous send. The data being sent must be valid for the
   // lifetime of the asynchronous operation.
-  template <typename ConstBufferSequence, typename Handler, typename IoExecutor>
+  template <typename ConstBufferSequence, typename Handler>
   void async_send_to(implementation_type&, const ConstBufferSequence&,
       const endpoint_type&, socket_base::message_flags,
       Handler& handler)
   {
     boost::system::error_code ec = boost::asio::error::operation_not_supported;
     const std::size_t bytes_transferred = 0;
-    boost::asio::post(io_ex, detail::bind_handler(
-          handler, ec, bytes_transferred));
+    io_service_.post(detail::bind_handler(handler, ec, bytes_transferred));
   }
 
   // Start an asynchronous wait until data can be sent without blocking.
-  template <typename Handler, typename IoExecutor>
+  template <typename Handler>
   void async_send_to(implementation_type&, const null_buffers&,
-      const endpoint_type&, socket_base::message_flags,
-      Handler& handler, const IoExecutor& io_ex)
+      const endpoint_type&, socket_base::message_flags, Handler& handler)
   {
     boost::system::error_code ec = boost::asio::error::operation_not_supported;
     const std::size_t bytes_transferred = 0;
-    boost::asio::post(io_ex, detail::bind_handler(
-          handler, ec, bytes_transferred));
+    io_service_.post(detail::bind_handler(handler, ec, bytes_transferred));
   }
 
   // Receive a datagram with the endpoint of the sender. Returns the number of
@@ -449,28 +428,25 @@ public:
   // Start an asynchronous receive. The buffer for the data being received and
   // the sender_endpoint object must both be valid for the lifetime of the
   // asynchronous operation.
-  template <typename MutableBufferSequence,
-      typename Handler, typename IoExecutor>
-  void async_receive_from(implementation_type&, const MutableBufferSequence&,
-      endpoint_type&, socket_base::message_flags, Handler& handler,
-      const IoExecutor& io_ex)
+  template <typename MutableBufferSequence, typename Handler>
+  void async_receive_from(implementation_type&,
+      const MutableBufferSequence&, endpoint_type&,
+      socket_base::message_flags, Handler& handler)
   {
     boost::system::error_code ec = boost::asio::error::operation_not_supported;
     const std::size_t bytes_transferred = 0;
-    boost::asio::post(io_ex, detail::bind_handler(
-          handler, ec, bytes_transferred));
+    io_service_.post(detail::bind_handler(handler, ec, bytes_transferred));
   }
 
   // Wait until data can be received without blocking.
-  template <typename Handler, typename IoExecutor>
-  void async_receive_from(implementation_type&, const null_buffers&,
-      endpoint_type&, socket_base::message_flags, Handler& handler,
-      const IoExecutor& io_ex)
+  template <typename Handler>
+  void async_receive_from(implementation_type&,
+      const null_buffers&, endpoint_type&,
+      socket_base::message_flags, Handler& handler)
   {
     boost::system::error_code ec = boost::asio::error::operation_not_supported;
     const std::size_t bytes_transferred = 0;
-    boost::asio::post(io_ex, detail::bind_handler(
-          handler, ec, bytes_transferred));
+    io_service_.post(detail::bind_handler(handler, ec, bytes_transferred));
   }
 
   // Accept a new connection.
@@ -484,12 +460,12 @@ public:
 
   // Start an asynchronous accept. The peer and peer_endpoint objects
   // must be valid until the accept's handler is invoked.
-  template <typename Socket, typename Handler, typename IoExecutor>
-  void async_accept(implementation_type&, Socket&, endpoint_type*,
-      Handler& handler, const IoExecutor& io_ex)
+  template <typename Socket, typename Handler>
+  void async_accept(implementation_type&, Socket&,
+      endpoint_type*, Handler& handler)
   {
     boost::system::error_code ec = boost::asio::error::operation_not_supported;
-    boost::asio::post(io_ex, detail::bind_handler(handler, ec));
+    io_service_.post(detail::bind_handler(handler, ec));
   }
 
   // Connect the socket to the specified endpoint.
@@ -501,13 +477,16 @@ public:
   }
 
   // Start an asynchronous connect.
-  template <typename Handler, typename IoExecutor>
-  void async_connect(implementation_type&, const endpoint_type&,
-      Handler& handler, const IoExecutor& io_ex)
+  template <typename Handler>
+  void async_connect(implementation_type&,
+      const endpoint_type&, Handler& handler)
   {
     boost::system::error_code ec = boost::asio::error::operation_not_supported;
-    boost::asio::post(io_ex, detail::bind_handler(handler, ec));
+    io_service_.post(detail::bind_handler(handler, ec));
   }
+
+private:
+  boost::asio::io_service& io_service_;
 };
 
 } // namespace detail

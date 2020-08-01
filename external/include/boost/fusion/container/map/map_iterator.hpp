@@ -156,8 +156,9 @@ namespace boost { namespace fusion
 
         Seq& seq_;
 
+    private:
         // silence MSVC warning C4512: assignment operator could not be generated
-        BOOST_DELETED_FUNCTION(map_iterator& operator= (map_iterator const&))
+        map_iterator& operator= (map_iterator const&);
     };
 
 }}

@@ -2,7 +2,7 @@
 // ssl/rfc2818_verification.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2020 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -17,11 +17,11 @@
 
 #include <boost/asio/detail/config.hpp>
 
-#if !defined(BOOST_ASIO_NO_DEPRECATED)
-
-#include <string>
-#include <boost/asio/ssl/detail/openssl_types.hpp>
-#include <boost/asio/ssl/verify_context.hpp>
+#if !defined(BOOST_ASIO_ENABLE_OLD_SSL)
+# include <string>
+# include <boost/asio/ssl/detail/openssl_types.hpp>
+# include <boost/asio/ssl/verify_context.hpp>
+#endif // !defined(BOOST_ASIO_ENABLE_OLD_SSL)
 
 #include <boost/asio/detail/push_options.hpp>
 
@@ -29,8 +29,10 @@ namespace boost {
 namespace asio {
 namespace ssl {
 
-/// (Deprecated. Use ssl::host_name_verification.) Verifies a certificate
-/// against a hostname according to the rules described in RFC 2818.
+#if !defined(BOOST_ASIO_ENABLE_OLD_SSL)
+
+/// Verifies a certificate against a hostname according to the rules described
+/// in RFC 2818.
 /**
  * @par Example
  * The following example shows how to synchronously open a secure connection to
@@ -45,9 +47,9 @@ namespace ssl {
  * ctx.set_default_verify_paths();
  *
  * // Open a socket and connect it to the remote host.
- * boost::asio::io_context io_context;
- * ssl_socket sock(io_context, ctx);
- * tcp::resolver resolver(io_context);
+ * boost::asio::io_service io_service;
+ * ssl_socket sock(io_service, ctx);
+ * tcp::resolver resolver(io_service);
  * tcp::resolver::query query("host.name", "https");
  * boost::asio::connect(sock.lowest_layer(), resolver.resolve(query));
  * sock.lowest_layer().set_option(tcp::no_delay(true));
@@ -85,6 +87,8 @@ private:
   std::string host_;
 };
 
+#endif // defined(BOOST_ASIO_ENABLE_OLD_SSL)
+
 } // namespace ssl
 } // namespace asio
 } // namespace boost
@@ -94,7 +98,5 @@ private:
 #if defined(BOOST_ASIO_HEADER_ONLY)
 # include <boost/asio/ssl/impl/rfc2818_verification.ipp>
 #endif // defined(BOOST_ASIO_HEADER_ONLY)
-
-#endif // !defined(BOOST_ASIO_NO_DEPRECATED)
 
 #endif // BOOST_ASIO_SSL_RFC2818_VERIFICATION_HPP

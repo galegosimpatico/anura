@@ -27,7 +27,7 @@ namespace boost
 namespace detail
 {
 
-class BOOST_SYMBOL_VISIBLE local_counted_base
+class local_counted_base
 {
 private:
 
@@ -60,14 +60,12 @@ public:
 
     void add_ref() BOOST_SP_NOEXCEPT
     {
-#if !defined(__NVCC__)
 #if defined( __has_builtin )
 # if __has_builtin( __builtin_assume )
 
         __builtin_assume( local_use_count_ >= 1 );
 
 # endif
-#endif
 #endif
 
         local_use_count_ = static_cast<count_type>( local_use_count_ + 1 );
@@ -89,7 +87,7 @@ public:
     }
 };
 
-class BOOST_SYMBOL_VISIBLE local_counted_impl: public local_counted_base
+class local_counted_impl: public local_counted_base
 {
 private:
 
@@ -101,13 +99,13 @@ private:
 
 public:
 
-    explicit local_counted_impl( shared_count const& pn ) BOOST_SP_NOEXCEPT: pn_( pn )
+    explicit local_counted_impl( shared_count const& pn ): pn_( pn )
     {
     }
 
 #if !defined( BOOST_NO_CXX11_RVALUE_REFERENCES )
 
-    explicit local_counted_impl( shared_count && pn ) BOOST_SP_NOEXCEPT: pn_( std::move(pn) )
+    explicit local_counted_impl( shared_count && pn ): pn_( std::move(pn) )
     {
     }
 
@@ -124,7 +122,7 @@ public:
     }
 };
 
-class BOOST_SYMBOL_VISIBLE local_counted_impl_em: public local_counted_base
+class local_counted_impl_em: public local_counted_base
 {
 public:
 

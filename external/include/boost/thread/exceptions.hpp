@@ -56,7 +56,7 @@ namespace boost
         {
         }
 
-        ~thread_exception() BOOST_NOEXCEPT_OR_NOTHROW
+        ~thread_exception() throw()
         {}
 
 
@@ -113,7 +113,7 @@ namespace boost
         {
         }
 
-        ~lock_error() BOOST_NOEXCEPT_OR_NOTHROW
+        ~lock_error() throw()
         {}
 
     };
@@ -141,7 +141,7 @@ namespace boost
           }
 
 
-        ~thread_resource_error() BOOST_NOEXCEPT_OR_NOTHROW
+        ~thread_resource_error() throw()
         {}
 
     };

@@ -17,14 +17,10 @@
 
 #include <boost/mpl/bool.hpp>
 
-namespace boost
-{
-namespace detail
-{
-    template < typename > struct is_distributed_selector : boost::mpl::false_
-    {
-    };
-}
+namespace boost {
+  namespace detail {
+    template <typename> struct is_distributed_selector: boost::mpl::false_ {};
+  }
 }
 
 #endif // BOOST_GRAPH_DETAIL_IS_DISTRIBUTED_SELECTOR_HPP

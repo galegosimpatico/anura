@@ -17,7 +17,6 @@
 
 #include <boost/container/detail/config_begin.hpp>
 #include <boost/container/detail/workaround.hpp>
-#include <boost/container/container_fwd.hpp>
 #include <boost/move/detail/type_traits.hpp>
 #include <cstddef>
 
@@ -27,7 +26,7 @@ namespace pmr {
 
 //! The memory_resource class is an abstract interface to an
 //! unbounded set of classes encapsulating memory resources.
-class BOOST_CONTAINER_DECL memory_resource
+class memory_resource
 {
    public:
    // For exposition only

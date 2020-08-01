@@ -35,7 +35,7 @@
 
 namespace boost {
 namespace container {
-namespace dtl {
+namespace container_detail {
 
 template<class VoidPointer>
 class basic_multiallocation_chain
@@ -53,7 +53,7 @@ class basic_multiallocation_chain
    typedef bi::slist< node
                     , bi::linear<true>
                     , bi::cache_last<true>
-                    , bi::size_type<typename boost::container::dtl::make_unsigned<difference_type>::type>
+                    , bi::size_type<typename boost::container::container_detail::make_unsigned<difference_type>::type>
                     > slist_impl_t;
    slist_impl_t slist_impl_;
 
@@ -171,23 +171,18 @@ class basic_multiallocation_chain
 
    std::pair<void_pointer, void_pointer> extract_data()
    {
-      if(BOOST_LIKELY(!slist_impl_.empty())){
-         std::pair<void_pointer, void_pointer> ret
-            (slist_impl_.begin().operator->()
-            ,slist_impl_.last().operator->());
-         slist_impl_.clear();
-         return ret;
-      }
-      else {
-         return std::pair<void_pointer, void_pointer>();
-      }
+      std::pair<void_pointer, void_pointer> ret
+         (slist_impl_.begin().operator->()
+         ,slist_impl_.last().operator->());
+      slist_impl_.clear();
+      return ret;
    }
 };
 
 template<class T>
 struct cast_functor
 {
-   typedef typename dtl::add_reference<T>::type result_type;
+   typedef typename container_detail::add_reference<T>::type result_type;
    template<class U>
    result_type operator()(U &ptr) const
    {  return *static_cast<T*>(static_cast<void*>(&ptr));  }
@@ -216,7 +211,7 @@ class transform_multiallocation_chain
    public:
    typedef transform_iterator
       < typename MultiallocationChain::iterator
-      , dtl::cast_functor <T> >             iterator;
+      , container_detail::cast_functor <T> >             iterator;
    typedef typename MultiallocationChain::size_type      size_type;
 
    transform_multiallocation_chain()
@@ -236,46 +231,46 @@ class transform_multiallocation_chain
       return static_cast<MultiallocationChain&>
          (this->MultiallocationChain::operator=(::boost::move(static_cast<MultiallocationChain&>(other))));
    }
-
+/*
    void push_front(const pointer &mem)
-   {   this->MultiallocationChain::push_front(mem);  }
+   {  holder_.push_front(mem);  }
 
    void push_back(const pointer &mem)
-   {  return this->MultiallocationChain::push_back(mem);   }
+   {  return holder_.push_back(mem);   }
 
    void swap(transform_multiallocation_chain &other_chain)
-   {  this->MultiallocationChain::swap(other_chain); }
+   {  holder_.swap(other_chain.holder_); }
 
    void splice_after(iterator after_this, transform_multiallocation_chain &x, iterator before_b, iterator before_e, size_type n)
-   {  this->MultiallocationChain::splice_after(after_this.base(), x, before_b.base(), before_e.base(), n);  }
+   {  holder_.splice_after(after_this.base(), x.holder_, before_b.base(), before_e.base(), n);  }
 
    void incorporate_after(iterator after_this, pointer b, pointer before_e, size_type n)
-   {  this->MultiallocationChain::incorporate_after(after_this.base(), b, before_e, n);  }
-
+   {  holder_.incorporate_after(after_this.base(), b, before_e, n);  }
+*/
    pointer pop_front()
    {  return cast(this->MultiallocationChain::pop_front());  }
-
+/*
    bool empty() const
-   {  return this->MultiallocationChain::empty(); }
+   {  return holder_.empty(); }
 
    iterator before_begin()
-   {  return iterator(this->MultiallocationChain::before_begin());   }
-
+   {  return iterator(holder_.before_begin());   }
+*/
    iterator begin()
    {  return iterator(this->MultiallocationChain::begin());   }
+/*
+   iterator end()
+   {  return iterator(holder_.end());   }
 
    iterator last()
-   {  return iterator(this->MultiallocationChain::last());  }
-
-   iterator end()
-   {  return iterator(this->MultiallocationChain::end());   }
+   {  return iterator(holder_.last());   }
 
    size_type size() const
-   {  return this->MultiallocationChain::size();  }
+   {  return holder_.size();  }
 
    void clear()
-   {  this->MultiallocationChain::clear(); }
-
+   {  holder_.clear(); }
+*/
    iterator insert_after(iterator it, pointer m)
    {  return iterator(this->MultiallocationChain::insert_after(it.base(), m)); }
 
@@ -294,7 +289,7 @@ class transform_multiallocation_chain
 
 }}}
 
-// namespace dtl {
+// namespace container_detail {
 // namespace container {
 // namespace boost {
 

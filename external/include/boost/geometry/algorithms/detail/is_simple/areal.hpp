@@ -1,6 +1,6 @@
 // Boost.Geometry (aka GGL, Generic Geometry Library)
 
-// Copyright (c) 2014-2019, Oracle and/or its affiliates.
+// Copyright (c) 2014-2017, Oracle and/or its affiliates.
 
 // Contributed and/or modified by Menelaos Karavelas, on behalf of Oracle
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
@@ -35,22 +35,28 @@ namespace detail { namespace is_simple
 {
 
 
-template <typename Ring, typename CSTag>
+template <typename Ring>
 struct is_simple_ring
 {
+    template <typename Strategy>
+    static inline bool apply(Ring const& ring, Strategy const&)
+    {
+        return apply(ring);
+    }
+
     static inline bool apply(Ring const& ring)
     {
         simplicity_failure_policy policy;
         return ! boost::empty(ring)
             && ! detail::is_valid::has_duplicates
                     <
-                        Ring, geometry::closure<Ring>::value, CSTag
+                        Ring, geometry::closure<Ring>::value
                     >::apply(ring, policy);
     }
 };
 
 
-template <typename Polygon, typename CSTag>
+template <typename Polygon>
 class is_simple_polygon
 {
 private:
@@ -63,21 +69,25 @@ private:
                 <
                     is_simple_ring
                         <
-                            typename boost::range_value<InteriorRings>::type,
-                            CSTag
+                            typename boost::range_value<InteriorRings>::type
                         >
                 >::apply(boost::begin(interior_rings),
                          boost::end(interior_rings));
     }
 
 public:
+    template <typename Strategy>
+    static inline bool apply(Polygon const& polygon, Strategy const&)
+    {
+        return apply(polygon);
+    }
+
     static inline bool apply(Polygon const& polygon)
     {
         return
             is_simple_ring
                 <
-                    typename ring_type<Polygon>::type,
-                    CSTag
+                    typename ring_type<Polygon>::type
                 >::apply(exterior_ring(polygon))
             &&
             are_simple_interior_rings(geometry::interior_rings(polygon));
@@ -102,17 +112,8 @@ namespace dispatch
 // Reference (for polygon validity): OGC 06-103r4 (6.1.11.1)
 template <typename Ring>
 struct is_simple<Ring, ring_tag>
-{
-    template <typename Strategy>
-    static inline bool apply(Ring const& ring, Strategy const&)
-    {
-        return detail::is_simple::is_simple_ring
-            <
-                Ring,
-                typename Strategy::cs_tag
-            >::apply(ring);
-    }
-};
+    : detail::is_simple::is_simple_ring<Ring>
+{};
 
 
 // A Polygon is always a simple geometric object provided that it is valid.
@@ -120,17 +121,8 @@ struct is_simple<Ring, ring_tag>
 // Reference (for validity of Polygons): OGC 06-103r4 (6.1.11.1)
 template <typename Polygon>
 struct is_simple<Polygon, polygon_tag>
-{
-    template <typename Strategy>
-    static inline bool apply(Polygon const& polygon, Strategy const&)
-    {
-        return detail::is_simple::is_simple_polygon
-            <
-                Polygon,
-                typename Strategy::cs_tag
-            >::apply(polygon);
-    }
-};
+    : detail::is_simple::is_simple_polygon<Polygon>
+{};
 
 
 // Not clear what the definition is.
@@ -148,8 +140,7 @@ struct is_simple<MultiPolygon, multi_polygon_tag>
                 <
                     detail::is_simple::is_simple_polygon
                         <
-                            typename boost::range_value<MultiPolygon>::type,
-                            typename Strategy::cs_tag
+                            typename boost::range_value<MultiPolygon>::type
                         >,
                     true // allow empty multi-polygon
                 >::apply(boost::begin(multipolygon), boost::end(multipolygon));

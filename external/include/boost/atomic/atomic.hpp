@@ -17,7 +17,10 @@
 #define BOOST_ATOMIC_ATOMIC_HPP_INCLUDED_
 
 #include <boost/atomic/capabilities.hpp>
+#include <boost/atomic/fences.hpp>
+#include <boost/atomic/atomic_flag.hpp>
 #include <boost/atomic/detail/atomic_template.hpp>
+#include <boost/atomic/detail/operations.hpp>
 
 #ifdef BOOST_HAS_PRAGMA_ONCE
 #pragma once
@@ -76,12 +79,6 @@ using atomics::atomic_int_fast64_t;
 using atomics::atomic_uint_fast64_t;
 using atomics::atomic_intmax_t;
 using atomics::atomic_uintmax_t;
-
-#if !defined(BOOST_ATOMIC_NO_FLOATING_POINT)
-using atomics::atomic_float_t;
-using atomics::atomic_double_t;
-using atomics::atomic_long_double_t;
-#endif
 
 using atomics::atomic_size_t;
 using atomics::atomic_ptrdiff_t;

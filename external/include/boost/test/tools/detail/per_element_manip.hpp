@@ -16,11 +16,8 @@
 #include <boost/test/tools/detail/fwd.hpp>
 #include <boost/test/tools/detail/indirections.hpp>
 
-#include <boost/test/utils/lazy_ostream.hpp>
 #include <boost/test/tools/assertion.hpp>
 #include <boost/test/tools/collection_comparison_op.hpp>
-
-#include <ostream>
 
 #include <boost/test/detail/suppress_warnings.hpp>
 
@@ -34,17 +31,12 @@ namespace test_tools {
 // ************************************************************************** //
 
 //! Per element comparison manipulator, for containers
-//! This is a terminal that involves evaluation of the expression
 struct per_element {};
 
 //____________________________________________________________________________//
 
-inline unit_test::lazy_ostream&
-operator<<( unit_test::lazy_ostream &o, per_element )  { return o; }
-
-// needed for the lazy evaluation in lazy_ostream as per_element is a terminal
-inline std::ostream& 
-operator<<( std::ostream& o, per_element )             { return o; }
+inline int
+operator<<( unit_test::lazy_ostream const&, per_element )   { return 0; }
 
 //____________________________________________________________________________//
 
@@ -60,10 +52,10 @@ operator<<(assertion_evaluate_t<assertion::binary_expr<T1,T2,OP> > const& ae, pe
 
 //____________________________________________________________________________//
 
-inline assertion_type
+inline check_type
 operator<<( assertion_type const&, per_element )
 {
-    return assertion_type(CHECK_BUILT_ASSERTION);
+    return CHECK_BUILT_ASSERTION;
 }
 
 //____________________________________________________________________________//

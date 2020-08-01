@@ -63,18 +63,16 @@ xml_log_formatter::log_finish( std::ostream& ostr )
 //____________________________________________________________________________//
 
 void
-xml_log_formatter::log_build_info( std::ostream& ostr, bool log_build_info )
+xml_log_formatter::log_build_info( std::ostream& ostr )
 {
-    if( log_build_info ) {
-        ostr  << "<BuildInfo"
-                << " platform"  << utils::attr_value() << BOOST_PLATFORM
-                << " compiler"  << utils::attr_value() << BOOST_COMPILER
-                << " stl"       << utils::attr_value() << BOOST_STDLIB
-                << " boost=\""  << BOOST_VERSION/100000     << "."
-                                << BOOST_VERSION/100 % 1000 << "."
-                                << BOOST_VERSION % 100      << '\"'
-                << "/>";
-    }
+    ostr  << "<BuildInfo"
+            << " platform"  << utils::attr_value() << BOOST_PLATFORM
+            << " compiler"  << utils::attr_value() << BOOST_COMPILER
+            << " stl"       << utils::attr_value() << BOOST_STDLIB
+            << " boost=\""  << BOOST_VERSION/100000     << "."
+                            << BOOST_VERSION/100 % 1000 << "."
+                            << BOOST_VERSION % 100      << '\"'
+            << "/>";
 }
 
 //____________________________________________________________________________//
@@ -108,7 +106,7 @@ void
 xml_log_formatter::test_unit_skipped( std::ostream& ostr, test_unit const& tu, const_string reason )
 {
     ostr << "<" << tu_type_name( tu )
-         << " name"    << utils::attr_value() << tu.p_name.get()
+         << " name"    << utils::attr_value() << tu.p_name
          << " skipped" << utils::attr_value() << "yes"
          << " reason"  << utils::attr_value() << reason
          << "/>";

@@ -54,8 +54,6 @@ public:
         if ( unwind) flags_ |= flag_force_unwind;
     }
 
-    virtual ~push_coroutine_impl() {}
-
     bool force_unwind() const BOOST_NOEXCEPT
     { return 0 != ( flags_ & flag_force_unwind); }
 
@@ -146,8 +144,6 @@ public:
         if ( unwind) flags_ |= flag_force_unwind;
     }
 
-    virtual ~push_coroutine_impl() {}
-
     bool force_unwind() const BOOST_NOEXCEPT
     { return 0 != ( flags_ & flag_force_unwind); }
 
@@ -220,8 +216,6 @@ public:
     {
         if ( unwind) flags_ |= flag_force_unwind;
     }
-
-    virtual ~push_coroutine_impl() {}
 
     inline bool force_unwind() const BOOST_NOEXCEPT
     { return 0 != ( flags_ & flag_force_unwind); }

@@ -2,7 +2,7 @@
    Copyright (c) Marshall Clow 2017.
 
    Distributed under the Boost Software License, Version 1.0. (See accompanying
-   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+   file LICENSE10.txt or copy at http://www.boost.org/LICENSE10.txt)
 */
 
 /// \file  transform_reduce.hpp
@@ -15,7 +15,6 @@
 #include <functional>     // for std::plus
 #include <iterator>       // for std::iterator_traits
 
-#include <boost/config.hpp>
 #include <boost/range/begin.hpp>
 #include <boost/range/end.hpp>
 #include <boost/range/value_type.hpp>
@@ -47,8 +46,7 @@ OutputIterator transform_inclusive_scan(InputIterator first, InputIterator last,
         typename std::iterator_traits<InputIterator>::value_type init = uOp(*first);
         *result++ = init;
         if (++first != last)
-            return boost::algorithm::transform_inclusive_scan
-                                              (first, last, result, bOp, uOp, init);
+            return transform_inclusive_scan(first, last, result, bOp, uOp, init);
         }
 
     return result;

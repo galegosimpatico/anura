@@ -34,6 +34,7 @@
 
 namespace boost {
 namespace intrusive {
+namespace detail {
 
 template <class Slist>
 struct bucket_impl : public Slist
@@ -148,6 +149,8 @@ struct get_slist_impl
    {};
 };
 
+}  //namespace detail {
+
 template<class BucketValueTraits, bool IsConst>
 class hashtable_iterator
 {
@@ -166,22 +169,17 @@ class hashtable_iterator
    private:
    typedef typename value_traits::node_traits                  node_traits;
    typedef typename node_traits::node_ptr                      node_ptr;
-   typedef typename get_slist_impl
-      < typename reduced_slist_node_traits
+   typedef typename detail::get_slist_impl
+      < typename detail::reduced_slist_node_traits
          <node_traits>::type >::type                           slist_impl;
    typedef typename slist_impl::iterator                       siterator;
    typedef typename slist_impl::const_iterator                 const_siterator;
-   typedef bucket_impl<slist_impl>                             bucket_type;
+   typedef detail::bucket_impl<slist_impl>                     bucket_type;
 
    typedef typename pointer_traits
       <pointer>::template rebind_pointer
          < const BucketValueTraits >::type                     const_bucketvaltraits_ptr;
    typedef typename slist_impl::size_type                      size_type;
-   class nat;
-   typedef typename
-      detail::if_c< IsConst
-                  , hashtable_iterator<BucketValueTraits, false>
-                  , nat>::type                                 nonconst_iterator;
 
    BOOST_INTRUSIVE_FORCEINLINE static node_ptr downcast_bucket(typename bucket_type::node_ptr p)
    {
@@ -195,16 +193,12 @@ class hashtable_iterator
       : slist_it_()  //Value initialization to achieve "null iterators" (N3644)
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE explicit hashtable_iterator(siterator ptr, const BucketValueTraits *cont)
+   explicit hashtable_iterator(siterator ptr, const BucketValueTraits *cont)
       : slist_it_ (ptr)
       , traitsptr_ (cont ? pointer_traits<const_bucketvaltraits_ptr>::pointer_to(*cont) : const_bucketvaltraits_ptr() )
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE hashtable_iterator(const hashtable_iterator &other)
-      :  slist_it_(other.slist_it()), traitsptr_(other.get_bucket_value_traits())
-   {}
-
-   BOOST_INTRUSIVE_FORCEINLINE hashtable_iterator(const nonconst_iterator &other)
+   BOOST_INTRUSIVE_FORCEINLINE hashtable_iterator(const hashtable_iterator<BucketValueTraits, false> &other)
       :  slist_it_(other.slist_it()), traitsptr_(other.get_bucket_value_traits())
    {}
 
@@ -217,10 +211,7 @@ class hashtable_iterator
    BOOST_INTRUSIVE_FORCEINLINE hashtable_iterator& operator++()
    {  this->increment();   return *this;   }
 
-   BOOST_INTRUSIVE_FORCEINLINE hashtable_iterator &operator=(const hashtable_iterator &other)
-   {  slist_it_ = other.slist_it(); traitsptr_ = other.get_bucket_value_traits();   return *this;  }
-
-   BOOST_INTRUSIVE_FORCEINLINE hashtable_iterator operator++(int)
+   hashtable_iterator operator++(int)
    {
       hashtable_iterator result (*this);
       this->increment();

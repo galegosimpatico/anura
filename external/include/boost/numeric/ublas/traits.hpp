@@ -32,17 +32,10 @@
 #include <boost/type_traits/is_integral.hpp>
 #include <boost/type_traits/is_unsigned.hpp>
 #include <boost/mpl/and.hpp>
-#include <boost/mpl/if.hpp>
-#include <boost/typeof/typeof.hpp>
-
 
 // anonymous namespace to avoid ADL issues
 namespace {
-  template<class T>
-    typename boost::mpl::if_c<boost::is_integral<T>::value,
-                              double,
-                              T>::type
-  boost_numeric_ublas_sqrt (const T& t) {
+  template<class T> T boost_numeric_ublas_sqrt (const T& t) {
     using namespace std;
     // we'll find either std::sqrt or else another version via ADL:
     return sqrt (t);
@@ -53,8 +46,7 @@ inline typename boost::disable_if<
     boost::is_unsigned<T>, T >::type
     boost_numeric_ublas_abs (const T &t ) {
         using namespace std;
-        // force a type conversion back to T for char and short types
-        return static_cast<T>(abs( t ));
+        return abs( t );
     }
 
 template<typename T>
@@ -148,10 +140,24 @@ namespace boost { namespace numeric { namespace ublas {
       return in1 / R (in2);
     }
 
+    // Use Joel de Guzman's return type deduction
     // uBLAS assumes a common return type for all binary arithmetic operators
     template<class X, class Y>
     struct promote_traits {
-        typedef BOOST_TYPEOF_TPL(X() + Y()) promote_type;
+        typedef type_deduction_detail::base_result_of<X, Y> base_type;
+        static typename base_type::x_type x;
+        static typename base_type::y_type y;
+        static const std::size_t size = sizeof (
+                type_deduction_detail::test<
+                    typename base_type::x_type
+                  , typename base_type::y_type
+                >(x + y)     // Use x+y to stand of all the arithmetic actions
+            );
+
+        static const std::size_t index = (size / sizeof (char)) - 1;
+        typedef typename mpl::at_c<
+            typename base_type::types, index>::type id;
+        typedef typename id::type promote_type;
     };
 
 

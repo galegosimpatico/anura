@@ -1,6 +1,6 @@
 // Boost.Geometry (aka GGL, Generic Geometry Library)
 
-// Copyright (c) 2014-2019, Oracle and/or its affiliates.
+// Copyright (c) 2014-2017, Oracle and/or its affiliates.
 
 // Contributed and/or modified by Menelaos Karavelas, on behalf of Oracle
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
@@ -16,18 +16,18 @@
 #include <boost/core/ignore_unused.hpp>
 #include <boost/range.hpp>
 
-#include <boost/geometry/algorithms/detail/is_valid/is_acceptable_turn.hpp>
-#include <boost/geometry/algorithms/detail/overlay/get_turn_info.hpp>
-#include <boost/geometry/algorithms/detail/overlay/turn_info.hpp>
-#include <boost/geometry/algorithms/detail/overlay/self_turn_points.hpp>
-#include <boost/geometry/algorithms/validity_failure_type.hpp>
-
 #include <boost/geometry/core/assert.hpp>
 #include <boost/geometry/core/point_type.hpp>
 
 #include <boost/geometry/policies/predicate_based_interrupt_policy.hpp>
 #include <boost/geometry/policies/robustness/segment_ratio_type.hpp>
 #include <boost/geometry/policies/robustness/get_rescale_policy.hpp>
+
+#include <boost/geometry/algorithms/detail/overlay/get_turn_info.hpp>
+#include <boost/geometry/algorithms/detail/overlay/turn_info.hpp>
+#include <boost/geometry/algorithms/detail/overlay/self_turn_points.hpp>
+
+#include <boost/geometry/algorithms/detail/is_valid/is_acceptable_turn.hpp>
 
 namespace boost { namespace geometry
 {
@@ -41,7 +41,7 @@ namespace detail { namespace is_valid
 template
 <
     typename Geometry,
-    typename CSTag
+    typename IsAcceptableTurn = is_acceptable_turn<Geometry>
 >
 class has_valid_self_turns
 {
@@ -50,8 +50,7 @@ private:
 
     typedef typename geometry::rescale_policy_type
         <
-            point_type,
-            CSTag
+            point_type
         >::type rescale_policy_type;
 
     typedef detail::overlay::get_turn_info
@@ -63,7 +62,7 @@ public:
     typedef detail::overlay::turn_info
         <
             point_type,
-            typename segment_ratio_type
+            typename geometry::segment_ratio_type
                 <
                     point_type,
                     rescale_policy_type
@@ -80,20 +79,18 @@ public:
         boost::ignore_unused(visitor);
 
         rescale_policy_type robust_policy
-            = geometry::get_rescale_policy<rescale_policy_type>(geometry, strategy);
+            = geometry::get_rescale_policy<rescale_policy_type>(geometry);
 
         detail::overlay::stateless_predicate_based_interrupt_policy
             <
-                is_acceptable_turn<Geometry>
+                IsAcceptableTurn
             > interrupt_policy;
 
-        // Calculate self-turns, skipping adjacent segments
         detail::self_get_turn_points::self_turns<false, turn_policy>(geometry,
                                           strategy,
                                           robust_policy,
                                           turns,
-                                          interrupt_policy,
-                                          0, true);
+                                          interrupt_policy);
 
         if (interrupt_policy.has_intersections)
         {

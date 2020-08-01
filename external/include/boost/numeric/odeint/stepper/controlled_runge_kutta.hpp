@@ -163,7 +163,7 @@ public:
 
     time_type get_max_dt() { return m_max_dt; }
 
-protected:
+private:
     time_type m_max_dt;
 };
 
@@ -411,11 +411,10 @@ public:
     template< class System , class StateIn , class DerivIn , class StateOut >
     controlled_step_result try_step( System system , const StateIn &in , const DerivIn &dxdt , time_type &t , StateOut &out , time_type &dt )
     {
-        unwrapped_step_adjuster &step_adjuster = m_step_adjuster;
-        if( !step_adjuster.check_step_size_limit(dt) )
+        if( !m_step_adjuster.check_step_size_limit(dt) )
         {
             // given dt was above step size limit - adjust and return fail;
-            dt = step_adjuster.get_max_dt();
+            dt = m_step_adjuster.get_max_dt();
             return fail;
         }
 
@@ -429,13 +428,13 @@ public:
         if( max_rel_err > 1.0 )
         {
             // error too big, decrease step size and reject this step
-            dt = step_adjuster.decrease_step(dt, max_rel_err, m_stepper.error_order());
+            dt = m_step_adjuster.decrease_step(dt, max_rel_err, m_stepper.error_order());
             return fail;
         } else
         {
             // otherwise, increase step size and accept
             t += dt;
-            dt = step_adjuster.increase_step(dt, max_rel_err, m_stepper.stepper_order());
+            dt = m_step_adjuster.increase_step(dt, max_rel_err, m_stepper.stepper_order());
             return success;
         }
     }
@@ -506,7 +505,6 @@ private:
     stepper_type m_stepper;
     error_checker_type m_error_checker;
     step_adjuster_type m_step_adjuster;
-    typedef typename unwrap_reference< step_adjuster_type >::type unwrapped_step_adjuster;
 
     resizer_type m_dxdt_resizer;
     resizer_type m_xerr_resizer;
@@ -586,7 +584,7 @@ public:
             const step_adjuster_type &step_adjuster = step_adjuster_type() ,
             const stepper_type &stepper = stepper_type()
     )
-    : m_stepper( stepper ) , m_error_checker( error_checker ) , m_step_adjuster(step_adjuster) , 
+    : m_stepper( stepper ) , m_error_checker( error_checker ) , m_step_adjuster(step_adjuster) ,
       m_first_call( true )
     { }
 
@@ -753,11 +751,10 @@ public:
     controlled_step_result try_step( System system , const StateIn &in , const DerivIn &dxdt_in , time_type &t ,
             StateOut &out , DerivOut &dxdt_out , time_type &dt )
     {
-        unwrapped_step_adjuster &step_adjuster = m_step_adjuster;
-        if( !step_adjuster.check_step_size_limit(dt) )
+        if( !m_step_adjuster.check_step_size_limit(dt) )
         {
             // given dt was above step size limit - adjust and return fail;
-            dt = step_adjuster.get_max_dt();
+            dt = m_step_adjuster.get_max_dt();
             return fail;
         }
 
@@ -773,12 +770,12 @@ public:
         if( max_rel_err > 1.0 )
         {
             // error too big, decrease step size and reject this step
-            dt = step_adjuster.decrease_step(dt, max_rel_err, m_stepper.error_order());
+            dt = m_step_adjuster.decrease_step(dt, max_rel_err, m_stepper.error_order());
             return fail;
         }
         // otherwise, increase step size and accept
         t += dt;
-        dt = step_adjuster.increase_step(dt, max_rel_err, m_stepper.stepper_order());
+        dt = m_step_adjuster.increase_step(dt, max_rel_err, m_stepper.stepper_order());
         return success;
     }
 
@@ -906,7 +903,6 @@ private:
     stepper_type m_stepper;
     error_checker_type m_error_checker;
     step_adjuster_type m_step_adjuster;
-    typedef typename unwrap_reference< step_adjuster_type >::type unwrapped_step_adjuster;
 
     resizer_type m_dxdt_resizer;
     resizer_type m_xerr_resizer;

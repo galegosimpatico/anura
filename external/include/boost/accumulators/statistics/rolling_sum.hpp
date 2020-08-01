@@ -51,13 +51,6 @@ namespace impl
             return this->sum_;
         }
 
-        // make this accumulator serializeable
-        template<class Archive>
-        void serialize(Archive & ar, const unsigned int file_version)
-        { 
-            ar & sum_;
-        }
-
     private:
         Sample sum_;
     };

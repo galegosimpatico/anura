@@ -26,7 +26,7 @@
 # pragma warning(pop)
 #endif
 
-#if defined(BOOST_CLANG) && (BOOST_CLANG == 1)
+#if BOOST_CLANG
 #pragma clang diagnostic pop
 #endif
 

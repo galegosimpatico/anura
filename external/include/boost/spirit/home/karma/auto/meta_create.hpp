@@ -23,7 +23,6 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/push_back.hpp>
 #include <boost/fusion/include/as_vector.hpp>
-#include <boost/proto/tags.hpp>
 #include <boost/type_traits/is_same.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////

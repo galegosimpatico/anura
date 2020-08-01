@@ -38,7 +38,6 @@
 #include <algorithm> // for find_if
 #include <boost/config.hpp>
 #include <boost/assert.hpp>
-#include <boost/type_traits/is_pointer.hpp>
 #include <boost/detail/workaround.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/throw_exception.hpp>
@@ -451,8 +450,7 @@ namespace boost{
     char_separator()
       : m_use_ispunct(true),
         m_use_isspace(true),
-        m_empty_tokens(drop_empty_tokens),
-        m_output_done(false) { }
+        m_empty_tokens(drop_empty_tokens) { }
 
     void reset() { }
 

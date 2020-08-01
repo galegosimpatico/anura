@@ -11,13 +11,7 @@
 #pragma once
 #endif
 
-#include <boost/phoenix/core/actor.hpp>
-#include <boost/phoenix/core/as_actor.hpp>
-#include <boost/phoenix/core/expression.hpp>
-#include <boost/phoenix/core/v2_eval.hpp>
-#include <boost/phoenix/core/value.hpp> // includes as_actor specialization
-#include <boost/proto/traits.hpp>
-#include <boost/proto/proto_fwd.hpp> // for transform placeholders
+#include <boost/spirit/include/phoenix_core.hpp>
 
 namespace boost { namespace spirit { namespace lex
 {

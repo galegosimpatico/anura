@@ -36,9 +36,7 @@ namespace boost{
 
 #ifdef BOOST_MSVC
 #  pragma warning(push)
-#if BOOST_MSVC < 1910
-#pragma warning(disable:4800)
-#endif
+#  pragma warning(disable: 4800)
 #endif
 
 namespace BOOST_REGEX_DETAIL_NS{

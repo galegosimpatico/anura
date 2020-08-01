@@ -32,8 +32,7 @@ template<class InputIterator, class OutputIterator>
 inline event copy_on_device_cpu(InputIterator first,
                                 OutputIterator result,
                                 size_t count,
-                                command_queue &queue,
-                                const wait_list &events)
+                                command_queue &queue)
 {
     meta_kernel k("copy");
     const device& device = queue.get_device();
@@ -53,15 +52,14 @@ inline event copy_on_device_cpu(InputIterator first,
 
     size_t global_work_size = device.compute_units();
     if(count <= 1024) global_work_size = 1;
-    return k.exec_1d(queue, 0, global_work_size, events);
+    return k.exec_1d(queue, 0, global_work_size);
 }
 
 template<class InputIterator, class OutputIterator>
 inline event copy_on_device_gpu(InputIterator first,
                                 OutputIterator result,
                                 size_t count,
-                                command_queue &queue,
-                                const wait_list &events)
+                                command_queue &queue)
 {
     typedef typename std::iterator_traits<InputIterator>::value_type input_type;
 
@@ -88,15 +86,14 @@ inline event copy_on_device_gpu(InputIterator first,
 
     k.add_set_arg<const uint_>("count", static_cast<uint_>(count));
     size_t global_work_size = calculate_work_size(count, vpt, tpb);
-    return k.exec_1d(queue, 0, global_work_size, tpb, events);
+    return k.exec_1d(queue, 0, global_work_size, tpb);
 }
 
 template<class InputIterator, class OutputIterator>
 inline event dispatch_copy_on_device(InputIterator first,
                                      InputIterator last,
                                      OutputIterator result,
-                                     command_queue &queue,
-                                     const wait_list &events)
+                                     command_queue &queue)
 {
     const size_t count = detail::iterator_range_size(first, last);
 
@@ -111,19 +108,18 @@ inline event dispatch_copy_on_device(InputIterator first,
     // See https://github.com/boostorg/compute/pull/626
     if((device.type() & device::cpu) && !is_apple_platform_device(device))
     {
-        return copy_on_device_cpu(first, result, count, queue, events);
+        return copy_on_device_cpu(first, result, count, queue);
     }
-    return copy_on_device_gpu(first, result, count, queue, events);
+    return copy_on_device_gpu(first, result, count, queue);
 }
 
 template<class InputIterator, class OutputIterator>
 inline OutputIterator copy_on_device(InputIterator first,
                                      InputIterator last,
                                      OutputIterator result,
-                                     command_queue &queue,
-                                     const wait_list &events)
+                                     command_queue &queue)
 {
-    dispatch_copy_on_device(first, last, result, queue, events);
+    dispatch_copy_on_device(first, last, result, queue);
     return result + std::distance(first, last);
 }
 
@@ -131,11 +127,9 @@ template<class InputIterator>
 inline discard_iterator copy_on_device(InputIterator first,
                                        InputIterator last,
                                        discard_iterator result,
-                                       command_queue &queue,
-                                       const wait_list &events)
+                                       command_queue &queue)
 {
     (void) queue;
-    (void) events;
 
     return result + std::distance(first, last);
 }
@@ -144,10 +138,9 @@ template<class InputIterator, class OutputIterator>
 inline future<OutputIterator> copy_on_device_async(InputIterator first,
                                                    InputIterator last,
                                                    OutputIterator result,
-                                                   command_queue &queue,
-                                                   const wait_list &events)
+                                                   command_queue &queue)
 {
-    event event_ = dispatch_copy_on_device(first, last, result, queue, events);
+    event event_ = dispatch_copy_on_device(first, last, result, queue);
     return make_future(result + std::distance(first, last), event_);
 }
 
@@ -157,8 +150,7 @@ template<class T>
 inline svm_ptr<T> copy_on_device(svm_ptr<T> first,
                                  svm_ptr<T> last,
                                  svm_ptr<T> result,
-                                 command_queue &queue,
-                                 const wait_list &events)
+                                 command_queue &queue)
 {
     size_t count = iterator_range_size(first, last);
     if(count == 0){
@@ -166,7 +158,7 @@ inline svm_ptr<T> copy_on_device(svm_ptr<T> first,
     }
 
     queue.enqueue_svm_memcpy(
-        result.get(), first.get(), count * sizeof(T), events
+        result.get(), first.get(), count * sizeof(T)
     );
 
     return result + count;
@@ -176,8 +168,7 @@ template<class T>
 inline future<svm_ptr<T> > copy_on_device_async(svm_ptr<T> first,
                                                 svm_ptr<T> last,
                                                 svm_ptr<T> result,
-                                                command_queue &queue,
-                                                const wait_list &events)
+                                                command_queue &queue)
 {
     size_t count = iterator_range_size(first, last);
     if(count == 0){
@@ -185,7 +176,7 @@ inline future<svm_ptr<T> > copy_on_device_async(svm_ptr<T> first,
     }
 
     event event_ = queue.enqueue_svm_memcpy_async(
-        result.get(), first.get(), count * sizeof(T), events
+        result.get(), first.get(), count * sizeof(T)
     );
 
     return make_future(result + count, event_);

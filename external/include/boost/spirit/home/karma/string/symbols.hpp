@@ -21,8 +21,6 @@
 #include <boost/spirit/home/karma/detail/get_casetag.hpp>
 #include <boost/spirit/home/karma/detail/string_generate.hpp>
 #include <boost/config.hpp>
-#include <boost/proto/extends.hpp>
-#include <boost/proto/traits.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/mpl/if.hpp>
 #include <map>
@@ -413,8 +411,9 @@ namespace boost { namespace spirit { namespace karma
 
             symbols& sym;
 
+        private:
             // silence MSVC warning C4512: assignment operator could not be generated
-            BOOST_DELETED_FUNCTION(adder& operator= (adder const&))
+            adder& operator= (adder const&);
         };
 
         struct remover
@@ -445,8 +444,9 @@ namespace boost { namespace spirit { namespace karma
 
             symbols& sym;
 
+        private:
             // silence MSVC warning C4512: assignment operator could not be generated
-            BOOST_DELETED_FUNCTION(remover& operator= (remover const&))
+            remover& operator= (remover const&);
         };
 
         adder add;
@@ -670,8 +670,9 @@ namespace boost { namespace spirit { namespace karma
 
             symbols& sym;
 
+        private:
             // silence MSVC warning C4512: assignment operator could not be generated
-            BOOST_DELETED_FUNCTION(adder& operator= (adder const&))
+            adder& operator= (adder const&);
         };
 
         struct remover
@@ -702,8 +703,9 @@ namespace boost { namespace spirit { namespace karma
 
             symbols& sym;
 
+        private:
             // silence MSVC warning C4512: assignment operator could not be generated
-            BOOST_DELETED_FUNCTION(remover& operator= (remover const&))
+            remover& operator= (remover const&);
         };
 
         adder add;

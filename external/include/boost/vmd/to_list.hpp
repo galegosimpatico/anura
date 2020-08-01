@@ -63,7 +63,7 @@
 
     \brief Converts a sequence to a Boost PP list whose elements are the elements of the sequence. Re-entrant version.
 
-    d         = The next available BOOST_PP_WHILE iteration. <br/>
+    d         = The next available BOOST_PP_WHILE iteration. 
     ...       = Variadic parameters.
     
     The first variadic parameter is required and is the sequence to convert.

@@ -535,46 +535,46 @@ class avltree
    //Assert if passed value traits are compatible with the type
    BOOST_STATIC_ASSERT((detail::is_same<typename value_traits::value_type, T>::value));
 
-   BOOST_INTRUSIVE_FORCEINLINE avltree()
+   avltree()
       :  Base()
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE explicit avltree( const key_compare &cmp, const value_traits &v_traits = value_traits())
+   explicit avltree( const key_compare &cmp, const value_traits &v_traits = value_traits())
       :  Base(cmp, v_traits)
    {}
 
    template<class Iterator>
-   BOOST_INTRUSIVE_FORCEINLINE avltree( bool unique, Iterator b, Iterator e
+   avltree( bool unique, Iterator b, Iterator e
          , const key_compare &cmp = key_compare()
          , const value_traits &v_traits = value_traits())
       :  Base(unique, b, e, cmp, v_traits)
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE avltree(BOOST_RV_REF(avltree) x)
+   avltree(BOOST_RV_REF(avltree) x)
       :  Base(BOOST_MOVE_BASE(Base, x))
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE avltree& operator=(BOOST_RV_REF(avltree) x)
+   avltree& operator=(BOOST_RV_REF(avltree) x)
    {  return static_cast<avltree &>(this->Base::operator=(BOOST_MOVE_BASE(Base, x)));  }
 
    template <class Cloner, class Disposer>
-   BOOST_INTRUSIVE_FORCEINLINE void clone_from(const avltree &src, Cloner cloner, Disposer disposer)
+   void clone_from(const avltree &src, Cloner cloner, Disposer disposer)
    {  Base::clone_from(src, cloner, disposer);  }
 
    template <class Cloner, class Disposer>
-   BOOST_INTRUSIVE_FORCEINLINE void clone_from(BOOST_RV_REF(avltree) src, Cloner cloner, Disposer disposer)
+   void clone_from(BOOST_RV_REF(avltree) src, Cloner cloner, Disposer disposer)
    {  Base::clone_from(BOOST_MOVE_BASE(Base, src), cloner, disposer);  }
 
-   BOOST_INTRUSIVE_FORCEINLINE static avltree &container_from_end_iterator(iterator end_iterator)
+   static avltree &container_from_end_iterator(iterator end_iterator)
    {  return static_cast<avltree &>(Base::container_from_end_iterator(end_iterator));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static const avltree &container_from_end_iterator(const_iterator end_iterator)
+   static const avltree &container_from_end_iterator(const_iterator end_iterator)
    {  return static_cast<const avltree &>(Base::container_from_end_iterator(end_iterator));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static avltree &container_from_iterator(iterator it)
+   static avltree &container_from_iterator(iterator it)
    {  return static_cast<avltree &>(Base::container_from_iterator(it));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static const avltree &container_from_iterator(const_iterator it)
+   static const avltree &container_from_iterator(const_iterator it)
    {  return static_cast<const avltree &>(Base::container_from_iterator(it));   }
 };
 

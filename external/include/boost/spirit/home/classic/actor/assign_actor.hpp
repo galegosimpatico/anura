@@ -18,7 +18,7 @@ BOOST_SPIRIT_CLASSIC_NAMESPACE_BEGIN
 
     ///////////////////////////////////////////////////////////////////////////
     //  Summary:
-    //  A semantic action policy that applies the assignment operator.
+    //  A semantic action policy that applies the assignement operator.
     //  (This doc uses convention available in actors.hpp)
     //
     //  Actions (what it does):

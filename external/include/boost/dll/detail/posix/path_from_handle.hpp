@@ -1,5 +1,4 @@
 // Copyright 2014-2015 Renato Tegon Forti, Antony Polukhin.
-// Copyright 2016-2019 Antony Polukhin.
 //
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt
@@ -8,9 +7,10 @@
 #ifndef BOOST_DLL_DETAIL_POSIX_PATH_FROM_HANDLE_HPP
 #define BOOST_DLL_DETAIL_POSIX_PATH_FROM_HANDLE_HPP
 
-#include <boost/dll/config.hpp>
+#include <boost/config.hpp>
 #include <boost/dll/detail/system_error.hpp>
 #include <boost/dll/detail/posix/program_location_impl.hpp>
+#include <boost/filesystem/path.hpp>
 #include <boost/predef/os.h>
 
 #ifdef BOOST_HAS_PRAGMA_ONCE
@@ -30,7 +30,7 @@ namespace boost { namespace dll { namespace detail {
         );
     }
 
-    inline boost::dll::fs::path path_from_handle(void* handle, boost::dll::fs::error_code &ec) {
+    inline boost::filesystem::path path_from_handle(void* handle, boost::system::error_code &ec) {
         handle = strip_handle(handle);
 
         // Iterate through all images currently in memory
@@ -53,11 +53,12 @@ namespace boost { namespace dll { namespace detail {
         }
 
         boost::dll::detail::reset_dlerror();
-        ec = boost::dll::fs::make_error_code(
-            boost::dll::fs::errc::bad_file_descriptor
+        ec = boost::system::error_code(
+            boost::system::errc::bad_file_descriptor,
+            boost::system::generic_category()
         );
 
-        return boost::dll::fs::path();
+        return boost::filesystem::path();
     }
 
 }}} // namespace boost::dll::detail
@@ -78,12 +79,12 @@ namespace boost { namespace dll { namespace detail {
         // ...          // Ignoring remaning parts of the structure
     };
 
-    inline boost::dll::fs::path path_from_handle(const void* handle, boost::dll::fs::error_code &ec) {
+    inline boost::filesystem::path path_from_handle(const void* handle, boost::system::error_code &ec) {
         static const std::size_t work_around_b_24465209__offset = 128;
         const struct soinfo* si = reinterpret_cast<const struct soinfo*>(
             static_cast<const char*>(handle) + work_around_b_24465209__offset
         );
-        boost::dll::fs::path ret = boost::dll::symbol_location_ptr(si->base, ec);
+        boost::filesystem::path ret = boost::dll::symbol_location_ptr(si->base, ec);
 
         if (ec) {
             ec.clear();
@@ -119,7 +120,7 @@ namespace boost { namespace dll { namespace detail {
     };
 #endif // #if BOOST_OS_QNX
 
-    inline boost::dll::fs::path path_from_handle(void* handle, boost::dll::fs::error_code &ec) {
+    inline boost::filesystem::path path_from_handle(void* handle, boost::system::error_code &ec) {
         // RTLD_DI_LINKMAP (RTLD_DI_ORIGIN returns only folder and is not suitable for this case)
         // Obtain the Link_map for the handle  that  is  specified.
         // The  p  argument  points to a Link_map pointer (Link_map
@@ -144,18 +145,19 @@ namespace boost { namespace dll { namespace detail {
 #endif
         if (!link_map) {
             boost::dll::detail::reset_dlerror();
-            ec = boost::dll::fs::make_error_code(
-                boost::dll::fs::errc::bad_file_descriptor
+            ec = boost::system::error_code(
+                boost::system::errc::bad_file_descriptor,
+                boost::system::generic_category()
             );
 
-            return boost::dll::fs::path();
+            return boost::filesystem::path();
         }
 
         if (!link_map->l_name || *link_map->l_name == '\0') {
             return program_location_impl(ec);
         }
 
-        return boost::dll::fs::path(link_map->l_name);
+        return boost::filesystem::path(link_map->l_name);
     }
 
 }}} // namespace boost::dll::detail

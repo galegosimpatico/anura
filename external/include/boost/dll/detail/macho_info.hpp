@@ -1,5 +1,5 @@
 // Copyright 2014 Renato Tegon Forti, Antony Polukhin.
-// Copyright 2015-2019 Antony Polukhin.
+// Copyright 2015 Antony Polukhin.
 //
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt
@@ -8,16 +8,14 @@
 #ifndef BOOST_DLL_DETAIL_MACHO_INFO_HPP
 #define BOOST_DLL_DETAIL_MACHO_INFO_HPP
 
-#include <boost/dll/config.hpp>
+#include <boost/config.hpp>
 
 #ifdef BOOST_HAS_PRAGMA_ONCE
 # pragma once
 #endif
 
-#include <algorithm>
-#include <fstream>
-
-#include <boost/cstdint.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/dll/detail/x_info_interface.hpp>
 
 namespace boost { namespace dll { namespace detail {
 
@@ -156,7 +154,9 @@ typedef nlist_template<boost::uint32_t> nlist_32_;
 typedef nlist_template<boost::uint64_t> nlist_64_;
 
 template <class AddressOffsetT>
-class macho_info {
+class macho_info: public x_info_interface {
+    boost::filesystem::ifstream& f_;
+
     typedef boost::dll::detail::mach_header_template<AddressOffsetT>        header_t;
     typedef boost::dll::detail::load_command_                               load_command_t;
     typedef boost::dll::detail::segment_command_template<AddressOffsetT>    segment_t;
@@ -167,51 +167,55 @@ class macho_info {
     BOOST_STATIC_CONSTANT(boost::uint32_t, SEGMENT_CMD_NUMBER = (sizeof(AddressOffsetT) > 4 ? load_command_types::LC_SEGMENT_64_ : load_command_types::LC_SEGMENT_));
 
 public:
-    static bool parsing_supported(std::ifstream& fs) {
+    static bool parsing_supported(boost::filesystem::ifstream& f) {
         static const uint32_t magic_bytes = (sizeof(AddressOffsetT) <= sizeof(uint32_t) ? 0xfeedface : 0xfeedfacf);
 
         uint32_t magic;
-        fs.seekg(0);
-        fs.read(reinterpret_cast<char*>(&magic), sizeof(magic));
+        f.seekg(0);
+        f.read(reinterpret_cast<char*>(&magic), sizeof(magic));
         return (magic_bytes == magic);
     }
 
+    explicit macho_info(boost::filesystem::ifstream& f) BOOST_NOEXCEPT
+        : f_(f)
+    {}
+
 private:
     template <class T>
-    static void read_raw(std::ifstream& fs, T& value, std::size_t size = sizeof(T)) {
-        fs.read(reinterpret_cast<char*>(&value), size);
+    inline void read_raw(T& value, std::size_t size = sizeof(T)) const {
+        f_.read(reinterpret_cast<char*>(&value), size);
     }
 
     template <class F>
-    static void command_finder(std::ifstream& fs, uint32_t cmd_num, F callback_f) {
-        const header_t h = header(fs);
+    void command_finder(uint32_t cmd_num, F callback_f) {
+        const header_t h = header();
         load_command_t command;
-        fs.seekg(sizeof(header_t));
+        f_.seekg(sizeof(header_t));
         for (std::size_t i = 0; i < h.ncmds; ++i) {
-            const std::ifstream::pos_type pos = fs.tellg();
-            read_raw(fs, command);
+            const boost::filesystem::ifstream::pos_type pos = f_.tellg();
+            read_raw(command);
             if (command.cmd != cmd_num) {
-                fs.seekg(pos + static_cast<std::ifstream::pos_type>(command.cmdsize));
+                f_.seekg(pos + static_cast<boost::filesystem::ifstream::pos_type>(command.cmdsize));
                 continue;
             }
 
-            fs.seekg(pos);
-            callback_f(fs);
-            fs.seekg(pos + static_cast<std::ifstream::pos_type>(command.cmdsize));
+            f_.seekg(pos);
+            callback_f(*this);
+            f_.seekg(pos + static_cast<boost::filesystem::ifstream::pos_type>(command.cmdsize));
         }
     }
 
     struct section_names_gather {
         std::vector<std::string>&       ret;
 
-        void operator()(std::ifstream& fs) const {
+        void operator()(const macho_info& f) const {
             segment_t segment;
-            read_raw(fs, segment);
+            f.read_raw(segment);
 
             section_t section;
             ret.reserve(ret.size() + segment.nsects);
             for (std::size_t j = 0; j < segment.nsects; ++j) {
-                read_raw(fs, section);
+                f.read_raw(section);
                 // `segname` goes right after the `sectname`.
                 // Forcing `sectname` to end on '\0'
                 section.segname[0] = '\0';
@@ -227,16 +231,16 @@ private:
         std::vector<std::string>&       ret;
         std::size_t                     section_index;
 
-        void operator()(std::ifstream& fs) const {
+        void operator()(const macho_info& f) const {
             symbol_header_t symbh;
-            read_raw(fs, symbh);
+            f.read_raw(symbh);
             ret.reserve(ret.size() + symbh.nsyms);
 
             nlist_t symbol;
             std::string symbol_name;
             for (std::size_t j = 0; j < symbh.nsyms; ++j) {
-                fs.seekg(symbh.symoff + j * sizeof(nlist_t));
-                read_raw(fs, symbol);
+                f.f_.seekg(symbh.symoff + j * sizeof(nlist_t));
+                f.read_raw(symbol);
                 if (!symbol.n_strx) {
                     continue; // Symbol has no name
                 }
@@ -249,8 +253,8 @@ private:
                     continue; // Not in the required section
                 }
 
-                fs.seekg(symbh.stroff + symbol.n_strx);
-                getline(fs, symbol_name, '\0');
+                f.f_.seekg(symbh.stroff + symbol.n_strx);
+                getline(f.f_, symbol_name, '\0');
                 if (symbol_name.empty()) {
                     continue;
                 }
@@ -266,34 +270,34 @@ private:
     };
 
 public:
-    static std::vector<std::string> sections(std::ifstream& fs) {
+    std::vector<std::string> sections() {
         std::vector<std::string> ret;
         section_names_gather f = { ret };
-        command_finder(fs, SEGMENT_CMD_NUMBER, f);
+        command_finder(SEGMENT_CMD_NUMBER, f);
         return ret;
     }
 
 private:
-    static header_t header(std::ifstream& fs) {
+    inline header_t header() {
         header_t h;
 
-        fs.seekg(0);
-        read_raw(fs, h);
+        f_.seekg(0);
+        read_raw(h);
 
         return h;
     }
 
 public:
-    static std::vector<std::string> symbols(std::ifstream& fs) {
+    std::vector<std::string> symbols() {
         std::vector<std::string> ret;
         symbol_names_gather f = { ret, 0 };
-        command_finder(fs, load_command_types::LC_SYMTAB_, f);
+        command_finder(load_command_types::LC_SYMTAB_, f);
         return ret;
     }
 
-    static std::vector<std::string> symbols(std::ifstream& fs, const char* section_name) {
+    std::vector<std::string> symbols(const char* section_name) {
         // Not very optimal solution
-        std::vector<std::string> ret = sections(fs);
+        std::vector<std::string> ret = sections();
         std::vector<std::string>::iterator it = std::find(ret.begin(), ret.end(), section_name);
         if (it == ret.end()) {
             // No section with such name
@@ -304,7 +308,7 @@ public:
         // section indexes start from 1
         symbol_names_gather f = { ret, static_cast<std::size_t>(1 + (it - ret.begin())) };
         ret.clear();
-        command_finder(fs, load_command_types::LC_SYMTAB_, f);
+        command_finder(load_command_types::LC_SYMTAB_, f);
         return ret;
     }
 };

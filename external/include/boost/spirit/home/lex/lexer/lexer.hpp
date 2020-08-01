@@ -20,12 +20,10 @@
 #include <boost/spirit/home/lex/lexer/token_def.hpp>
 #include <boost/assert.hpp>
 #include <boost/noncopyable.hpp>
+#include <boost/detail/iterator.hpp>
 #include <boost/fusion/include/vector.hpp>
 #include <boost/mpl/assert.hpp>
-#include <boost/proto/extends.hpp>
-#include <boost/proto/traits.hpp>
 #include <boost/range/iterator_range.hpp>
-#include <iterator> // for std::iterator_traits
 #include <string>
 
 namespace boost { namespace spirit { namespace lex
@@ -85,7 +83,7 @@ namespace boost { namespace spirit { namespace lex
 
                 if (first != last) {
                     typedef typename 
-                        std::iterator_traits<Iterator>::value_type 
+                        boost::detail::iterator_traits<Iterator>::value_type 
                     token_type;
 
                     token_type const& t = *first;
@@ -183,8 +181,9 @@ namespace boost { namespace spirit { namespace lex
 
                 lexer_def_& def;
 
+            private:
                 // silence MSVC warning C4512: assignment operator could not be generated
-                BOOST_DELETED_FUNCTION(adder& operator= (adder const&))
+                adder& operator= (adder const&);
             };
             friend struct adder;
 
@@ -204,8 +203,9 @@ namespace boost { namespace spirit { namespace lex
 
                 lexer_def_& def;
 
+            private:
                 // silence MSVC warning C4512: assignment operator could not be generated
-                BOOST_DELETED_FUNCTION(pattern_adder& operator= (pattern_adder const&))
+                pattern_adder& operator= (pattern_adder const&);
             };
             friend struct pattern_adder;
 
@@ -280,8 +280,9 @@ namespace boost { namespace spirit { namespace lex
             string_type state;
             string_type targetstate;
 
+        private:
             // silence MSVC warning C4512: assignment operator could not be generated
-            BOOST_DELETED_FUNCTION(lexer_def_& operator= (lexer_def_ const&))
+            lexer_def_& operator= (lexer_def_ const&);
         };
 
 #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
@@ -375,16 +376,8 @@ namespace boost { namespace spirit { namespace lex
         typedef detail::lexer_def_<lexer> lexer_def;
         typedef std::basic_string<char_type> string_type;
 
-        // if `id_type` was specified but `first_id` is not provided
-        // the `min_token_id` value may be out of range for `id_type`,
-        // but it will be a problem only if unique ids feature is in use.
-        lexer(unsigned int flags = match_flags::match_default)
-          : lexer_type(flags)
-          , next_token_id(min_token_id)
-          , self(this_(), lexer_type::initial_state())
-        {}
-
-        lexer(unsigned int flags, id_type first_id)
+        lexer(unsigned int flags = match_flags::match_default
+            , id_type first_id = id_type(min_token_id)) 
           : lexer_type(flags)
           , next_token_id(first_id)
           , self(this_(), lexer_type::initial_state()) 

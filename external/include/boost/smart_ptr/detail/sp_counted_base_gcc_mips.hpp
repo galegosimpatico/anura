@@ -20,8 +20,7 @@
 //  Lock-free algorithm by Alexander Terekhov
 //
 
-#include <boost/smart_ptr/detail/sp_typeinfo_.hpp>
-#include <boost/config.hpp>
+#include <boost/detail/sp_typeinfo.hpp>
 
 namespace boost
 {
@@ -39,9 +38,7 @@ inline void atomic_increment( int * pw )
     (
         "0:\n\t"
         ".set push\n\t"
-#if !defined(__mips_isa_rev) || (__mips_isa_rev < 6)
         ".set mips2\n\t"
-#endif
         "ll %0, %1\n\t"
         "addiu %0, 1\n\t"
         "sc %0, %1\n\t"
@@ -62,9 +59,7 @@ inline int atomic_decrement( int * pw )
     (
         "0:\n\t"
         ".set push\n\t"
-#if !defined(__mips_isa_rev) || (__mips_isa_rev < 6)
         ".set mips2\n\t"
-#endif
         "ll %1, %2\n\t"
         "addiu %0, %1, -1\n\t"
         "sc %0, %2\n\t"
@@ -90,9 +85,7 @@ inline int atomic_conditional_increment( int * pw )
     (
         "0:\n\t"
         ".set push\n\t"
-#if !defined(__mips_isa_rev) || (__mips_isa_rev < 6)
         ".set mips2\n\t"
-#endif
         "ll %0, %2\n\t"
         "beqz %0, 1f\n\t"
         "addiu %1, %0, 1\n\t"
@@ -109,7 +102,7 @@ inline int atomic_conditional_increment( int * pw )
     return rv;
 }
 
-class BOOST_SYMBOL_VISIBLE sp_counted_base
+class sp_counted_base
 {
 private:
 
@@ -141,8 +134,8 @@ public:
         delete this;
     }
 
-    virtual void * get_deleter( sp_typeinfo_ const & ti ) = 0;
-    virtual void * get_local_deleter( sp_typeinfo_ const & ti ) = 0;
+    virtual void * get_deleter( sp_typeinfo const & ti ) = 0;
+    virtual void * get_local_deleter( sp_typeinfo const & ti ) = 0;
     virtual void * get_untyped_deleter() = 0;
 
     void add_ref_copy()

@@ -87,12 +87,10 @@ const int null                               = 0;
 struct lzma_params {
 
     // Non-explicit constructor.
-    lzma_params( uint32_t level = lzma::default_compression, uint32_t threads = 1 )
+    lzma_params( uint32_t level = lzma::default_compression )
         : level(level)
-        , threads(threads)
         { }
     uint32_t level;
-    uint32_t threads;
 };
 
 //
@@ -114,11 +112,7 @@ namespace detail {
 template<typename Alloc>
 struct lzma_allocator_traits {
 #ifndef BOOST_NO_STD_ALLOCATOR
-#if defined(BOOST_NO_CXX11_ALLOCATOR)
     typedef typename Alloc::template rebind<char>::other type;
-#else
-    typedef typename std::allocator_traits<Alloc>::template rebind_alloc<char> type;
-#endif
 #else
     typedef std::allocator<char> type;
 #endif
@@ -129,11 +123,7 @@ template< typename Alloc,
               BOOST_DEDUCED_TYPENAME lzma_allocator_traits<Alloc>::type >
 struct lzma_allocator : private Base {
 private:
-#if defined(BOOST_NO_CXX11_ALLOCATOR) || defined(BOOST_NO_STD_ALLOCATOR)
     typedef typename Base::size_type size_type;
-#else
-    typedef typename std::allocator_traits<Base>::size_type size_type;
-#endif
 public:
     BOOST_STATIC_CONSTANT(bool, custom =
         (!is_same<std::allocator<char>, Base>::value));
@@ -172,10 +162,8 @@ private:
                   lzma::alloc_func,
                   lzma::free_func,
                   void* derived );
-    void init_stream(bool compress);
-    void*    stream_;         // Actual type: lzma_stream*.
-    uint32_t level_;
-    uint32_t threads_;
+    void*         stream_;         // Actual type: lzmadec_stream*.
+    uint32_t level;
 };
 
 //
@@ -186,7 +174,7 @@ private:
 template<typename Alloc = std::allocator<char> >
 class lzma_compressor_impl : public lzma_base, public lzma_allocator<Alloc> {
 public:
-    lzma_compressor_impl(const lzma_params& = lzma_params());
+    lzma_compressor_impl(const lzma_params& = lzma::default_compression);
     ~lzma_compressor_impl();
     bool filter( const char*& src_begin, const char* src_end,
                  char*& dest_begin, char* dest_end, bool flush );
@@ -226,7 +214,7 @@ private:
 public:
     typedef typename base_type::char_type               char_type;
     typedef typename base_type::category                category;
-    basic_lzma_compressor( const lzma_params& = lzma_params(),
+    basic_lzma_compressor( const lzma_params& = lzma::default_compression,
                            std::streamsize buffer_size = default_device_buffer_size );
 };
 BOOST_IOSTREAMS_PIPABLE(basic_lzma_compressor, 1)

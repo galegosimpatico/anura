@@ -1,4 +1,4 @@
-// Copyright Antony Polukhin, 2016-2019.
+// Copyright Antony Polukhin, 2016-2017.
 //
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
@@ -16,10 +16,12 @@
 
 #include <boost/core/demangle.hpp>
 #include <boost/core/noncopyable.hpp>
-#include <boost/stacktrace/detail/to_dec_array.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/stacktrace/detail/to_hex_array.hpp>
 #include <windows.h>
 #include "dbgeng.h"
+
+#include <boost/detail/winapi/get_current_process.hpp>
 
 #ifdef BOOST_MSVC
 #   pragma comment(lib, "ole32.lib")
@@ -57,7 +59,7 @@ public:
         //
         // If we call CoInitializeEx befire user - user may end up with different mode, which is a problem.
         // So we need to call that initialization function as late as possible.
-        const DWORD res = ::CoInitializeEx(0, COINIT_MULTITHREADED);
+        const boost::detail::winapi::DWORD_ res = ::CoInitializeEx(0, COINIT_MULTITHREADED);
         ok_ = (res == S_OK || res == S_FALSE);
     }
 
@@ -98,7 +100,7 @@ public:
 };
 
 
-inline std::string mingw_demangling_workaround(const std::string& s) {
+static std::string minwg_demangling_workaround(const std::string& s) {
 #ifdef BOOST_GCC
     if (s.empty()) {
         return s;
@@ -112,17 +114,6 @@ inline std::string mingw_demangling_workaround(const std::string& s) {
 #else
     return s;
 #endif
-}
-
-inline void trim_right_zeroes(std::string& s) {
-    // MSVC-9 does not have back() and pop_back() functions in std::string
-    while (!s.empty()) {
-        const std::size_t last = static_cast<std::size_t>(s.size() - 1);
-        if (s[last] != '\0') {
-            break;
-        }
-        s.resize(last);
-    }
 }
 
 class debugging_symbols: boost::noncopyable {
@@ -173,7 +164,7 @@ public:
 #else
 
 #ifdef BOOST_NO_CXX11_THREAD_LOCAL
-#   error Your compiler does not support C++11 thread_local storage. It`s impossible to build with BOOST_STACKTRACE_USE_WINDBG_CACHED.
+#   error Your compiler does not support C++11 thread_local storage. It's impossible to build with BOOST_STACKTRACE_USE_WINDBG_CACHED.
 #endif
 
     static com_holder< ::IDebugSymbols>& get_thread_local_debug_inst() BOOST_NOEXCEPT {
@@ -228,7 +219,6 @@ public:
                 &size,
                 0
             ));
-            trim_right_zeroes(result);
         } else if (res) {
             result = name;
         }
@@ -249,7 +239,7 @@ public:
             return result;
         }
 
-        result = mingw_demangling_workaround(
+        result = minwg_demangling_workaround(
             result.substr(delimiter + 1)
         );
 
@@ -313,7 +303,6 @@ public:
             &size,
             0
         ));
-        trim_right_zeroes(result.first);
         result.second = line_num;
 
         if (!res) {
@@ -342,7 +331,7 @@ public:
             res += " at ";
             res += source_line.first;
             res += ':';
-            res += boost::stacktrace::detail::to_dec_array(source_line.second).data();
+            res += boost::lexical_cast<boost::array<char, 40> >(source_line.second).data();
         } else if (!module_name.empty()) {
             res += " in ";
             res += module_name;
@@ -362,7 +351,7 @@ std::string to_string(const frame* frames, std::size_t size) {
         if (i < 10) {
             res += ' ';
         }
-        res += boost::stacktrace::detail::to_dec_array(i).data();
+        res += boost::lexical_cast<boost::array<char, 40> >(i).data();
         res += '#';
         res += ' ';
         idebug.to_string_impl(frames[i].address(), res);

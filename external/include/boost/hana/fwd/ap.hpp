@@ -29,10 +29,11 @@ BOOST_HANA_NAMESPACE_BEGIN
     //! number of `x...` must match the arity of the functions in the `f`
     //! structure. In other words, `ap(f, x1, ..., xN)` is equivalent to
     //! @code
-    //!     ((curry(f) ap x1) ap x2) ... ap xN
+    //!     ((f' <ap> x1) <ap> x2) ... <ap> xN
     //! @endcode
-    //! where `x ap y` is just `ap(x, y)` written in infix notation to
-    //! emphasize the left associativity.
+    //! where `f'` is `f` but containing curried functions instead and
+    //! `x <ap> y` is just `ap(x, y)` written in infix notation to emphasize
+    //! the left associativity.
     //!
     //!
     //! Signature

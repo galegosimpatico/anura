@@ -1,6 +1,6 @@
 // Boost.Geometry (aka GGL, Generic Geometry Library)
 
-// Copyright (c) 2017-2018 Oracle and/or its affiliates.
+// Copyright (c) 2017 Oracle and/or its affiliates.
 // Contributed and/or modified by Vissarion Fisikopoulos, on behalf of Oracle
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
@@ -12,15 +12,13 @@
 #define BOOST_GEOMETRY_STRATEGIES_GEOGRAPHIC_ENVELOPE_SEGMENT_HPP
 
 
-#include <boost/geometry/srs/spheroid.hpp>
-
-#include <boost/geometry/strategies/cartesian/envelope_segment.hpp>
+#include <boost/geometry/algorithms/detail/envelope/segment.hpp>
+#include <boost/geometry/algorithms/detail/normalize.hpp>
+#include <boost/geometry/core/srs.hpp>
 #include <boost/geometry/strategies/envelope.hpp>
 #include <boost/geometry/strategies/geographic/azimuth.hpp>
 #include <boost/geometry/strategies/geographic/parameters.hpp>
-#include <boost/geometry/strategies/normalize.hpp>
-#include <boost/geometry/strategies/spherical/envelope_segment.hpp>
-#include <boost/geometry/strategies/spherical/expand_box.hpp>
+
 
 namespace boost { namespace geometry
 {
@@ -47,18 +45,11 @@ public:
         : m_spheroid(spheroid)
     {}
 
-    typedef strategy::expand::spherical_box box_expand_strategy_type;
-    static inline box_expand_strategy_type get_box_expand_strategy()
+    template <typename Point1, typename Point2, typename Box>
+    inline void apply(Point1 const& point1, Point2 const& point2, Box& box) const
     {
-        return box_expand_strategy_type();
-    }
-
-    template <typename Point, typename Box>
-    inline void apply(Point const& point1, Point const& point2, Box& box) const
-    {
-        Point p1_normalized, p2_normalized;
-        strategy::normalize::spherical_point::apply(point1, p1_normalized);
-        strategy::normalize::spherical_point::apply(point2, p2_normalized);
+        Point1 p1_normalized = detail::return_normalized<Point1>(point1);
+        Point2 p2_normalized = detail::return_normalized<Point2>(point2);
 
         geometry::strategy::azimuth::geographic
             <
@@ -67,13 +58,9 @@ public:
                 CalculationType
             > azimuth_geographic(m_spheroid);
 
-        typedef typename geometry::detail::cs_angular_units
-            <
-                Point
-            >::type units_type;
+        typedef typename coordinate_system<Point1>::type::units units_type;
 
-        // first compute the envelope range for the first two coordinates
-        strategy::envelope::detail::envelope_segment_impl
+        detail::envelope::envelope_segment_impl
             <
                 geographic_tag
             >::template apply<units_type>(geometry::get<0>(p1_normalized),
@@ -83,12 +70,6 @@ public:
                                           box,
                                           azimuth_geographic);
 
-        // now compute the envelope range for coordinates of
-        // dimension 2 and higher
-        strategy::envelope::detail::envelope_one_segment
-            <
-                2, dimension<Point>::value
-            >::apply(point1, point2, box);
     }
 
 private:
@@ -101,7 +82,7 @@ namespace services
 {
 
 template <typename CalculationType>
-struct default_strategy<segment_tag, geographic_tag, CalculationType>
+struct default_strategy<geographic_tag, CalculationType>
 {
     typedef strategy::envelope::geographic_segment
         <

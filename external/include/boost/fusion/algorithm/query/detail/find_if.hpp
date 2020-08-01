@@ -2,7 +2,6 @@
     Copyright (c) 2001-2011 Joel de Guzman
     Copyright (c) 2007 Dan Marsden
     Copyright (c) 2009 Christopher Schmidt
-    Copyright (c) 2018 Kohei Takahashi
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying 
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -14,6 +13,7 @@
 #include <boost/mpl/apply.hpp>
 #include <boost/mpl/eval_if.hpp>
 #include <boost/mpl/identity.hpp>
+#include <boost/mpl/lambda.hpp>
 #include <boost/mpl/or.hpp>
 #include <boost/fusion/iterator/advance.hpp>
 #include <boost/fusion/iterator/distance.hpp>
@@ -22,9 +22,10 @@
 #include <boost/fusion/sequence/intrinsic/begin.hpp>
 #include <boost/fusion/sequence/intrinsic/end.hpp>
 #include <boost/fusion/support/category_of.hpp>
-#include <boost/core/enable_if.hpp>
 
-namespace boost { namespace fusion { namespace detail
+namespace boost { namespace fusion { 
+    struct random_access_traversal_tag;
+namespace detail
 {
     template <typename Iterator, typename Pred>
     struct apply_filter
@@ -177,8 +178,8 @@ namespace boost { namespace fusion { namespace detail
             choose_find_if<
                 First
               , Last
-              , Pred
-              , traits::is_random_access<First>::value
+              , typename mpl::lambda<Pred>::type
+              , is_base_of<random_access_traversal_tag, typename traits::category_of<First>::type>::value
             >::type
         type;
 
@@ -207,21 +208,29 @@ namespace boost { namespace fusion { namespace detail
             return recursive_call(iter, found());
         }
 
-        template <typename Iterator>
+        template <typename Iterator, typename Tag>
         BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-        static typename boost::disable_if<traits::is_random_access<Iterator>, type>::type
-        iter_call(Iterator const& iter)
+        static type
+        choose_call(Iterator const& iter, Tag)
         {
             return recursive_call(iter);
         }
 
         template <typename Iterator>
         BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
-        static typename boost::enable_if<traits::is_random_access<Iterator>, type>::type
-        iter_call(Iterator const& iter)
+        static type
+        choose_call(Iterator const& iter, random_access_traversal_tag)
         {
             typedef typename result_of::distance<Iterator, type>::type N;
             return fusion::advance<N>(iter);
+        }
+
+        template <typename Iterator>
+        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
+        static type
+        iter_call(Iterator const& iter)
+        {
+            return choose_call(iter, typename traits::category_of<Iterator>::type());
         }
 
         template <typename Sequence>

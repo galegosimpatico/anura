@@ -34,10 +34,7 @@
 #endif
 #ifdef BOOST_MSVC
 #  pragma warning(push)
-#  pragma warning(disable: 4706)
-#if BOOST_MSVC < 1910
-#pragma warning(disable:4800)
-#endif
+#  pragma warning(disable: 4800 4706)
 #endif
 
 namespace boost{
@@ -67,7 +64,7 @@ struct saved_matched_paren : public saved_state
 {
    int index;
    sub_match<BidiIterator> sub;
-   saved_matched_paren(int i, const sub_match<BidiIterator>& s) : saved_state(1), index(i), sub(s){}
+   saved_matched_paren(int i, const sub_match<BidiIterator>& s) : saved_state(1), index(i), sub(s){};
 };
 
 template <class BidiIterator>
@@ -75,7 +72,7 @@ struct saved_position : public saved_state
 {
    const re_syntax_base* pstate;
    BidiIterator position;
-   saved_position(const re_syntax_base* ps, BidiIterator pos, int i) : saved_state(i), pstate(ps), position(pos){}
+   saved_position(const re_syntax_base* ps, BidiIterator pos, int i) : saved_state(i), pstate(ps), position(pos){};
 };
 
 template <class BidiIterator>
@@ -83,7 +80,7 @@ struct saved_assertion : public saved_position<BidiIterator>
 {
    bool positive;
    saved_assertion(bool p, const re_syntax_base* ps, BidiIterator pos) 
-      : saved_position<BidiIterator>(ps, pos, saved_type_assertion), positive(p){}
+      : saved_position<BidiIterator>(ps, pos, saved_type_assertion), positive(p){};
 };
 
 template <class BidiIterator>
@@ -133,26 +130,17 @@ struct saved_single_repeat : public saved_state
 template <class Results>
 struct saved_recursion : public saved_state
 {
-   saved_recursion(int idx, const re_syntax_base* p, Results* pr, Results* pr2) 
-      : saved_state(14), recursion_id(idx), preturn_address(p), internal_results(*pr), prior_results(*pr2) {}
+   saved_recursion(int idx, const re_syntax_base* p, Results* pr) 
+      : saved_state(14), recursion_id(idx), preturn_address(p), results(*pr) {}
    int recursion_id;
    const re_syntax_base* preturn_address;
-   Results internal_results, prior_results;
+   Results results;
 };
 
 struct saved_change_case : public saved_state
 {
    bool icase;
    saved_change_case(bool c) : saved_state(18), icase(c) {}
-};
-
-struct incrementer
-{
-   incrementer(unsigned* pu) : m_pu(pu) { ++*m_pu; }
-   ~incrementer() { --*m_pu; }
-   bool operator > (unsigned i) { return *m_pu > i; }
-private:
-   unsigned* m_pu;
 };
 
 template <class BidiIterator, class Allocator, class traits>
@@ -199,9 +187,7 @@ bool perl_matcher<BidiIterator, Allocator, traits>::match_all_states()
       &perl_matcher<BidiIterator, Allocator, traits>::match_commit,
       &perl_matcher<BidiIterator, Allocator, traits>::match_then,
    };
-   incrementer inc(&m_recursions);
-   if(inc > 80)
-      raise_error(traits_inst, regex_constants::error_complexity);
+
    push_recursion_stopper();
    do{
       while(pstate)
@@ -368,7 +354,7 @@ inline void perl_matcher<BidiIterator, Allocator, traits>::push_single_repeat(st
 }
 
 template <class BidiIterator, class Allocator, class traits>
-inline void perl_matcher<BidiIterator, Allocator, traits>::push_recursion(int idx, const re_syntax_base* p, results_type* presults, results_type* presults2)
+inline void perl_matcher<BidiIterator, Allocator, traits>::push_recursion(int idx, const re_syntax_base* p, results_type* presults)
 {
    saved_recursion<results_type>* pmp = static_cast<saved_recursion<results_type>*>(m_backup_state);
    --pmp;
@@ -378,7 +364,7 @@ inline void perl_matcher<BidiIterator, Allocator, traits>::push_recursion(int id
       pmp = static_cast<saved_recursion<results_type>*>(m_backup_state);
       --pmp;
    }
-   (void) new (pmp)saved_recursion<results_type>(idx, p, presults, presults2);
+   (void) new (pmp)saved_recursion<results_type>(idx, p, presults);
    m_backup_state = pmp;
 }
 
@@ -702,7 +688,7 @@ bool perl_matcher<BidiIterator, Allocator, traits>::match_rep()
 template <class BidiIterator, class Allocator, class traits>
 bool perl_matcher<BidiIterator, Allocator, traits>::match_dot_repeat_slow()
 {
-   std::size_t count = 0;
+   unsigned count = 0;
    const re_repeat* rep = static_cast<const re_repeat*>(pstate);
    re_syntax_base* psingle = rep->next.p;
    // match compulsary repeats first:
@@ -754,7 +740,7 @@ bool perl_matcher<BidiIterator, Allocator, traits>::match_dot_repeat_fast()
 
    const re_repeat* rep = static_cast<const re_repeat*>(pstate);
    bool greedy = (rep->greedy) && (!(m_match_flags & regex_constants::match_any) || m_independent);   
-   std::size_t count = static_cast<std::size_t>((std::min)(static_cast<std::size_t>(::boost::BOOST_REGEX_DETAIL_NS::distance(position, last)), greedy ? rep->max : rep->min));
+   unsigned count = static_cast<unsigned>((std::min)(static_cast<unsigned>(::boost::BOOST_REGEX_DETAIL_NS::distance(position, last)), static_cast<unsigned>(greedy ? rep->max : rep->min)));
    if(rep->min > count)
    {
       position = last;
@@ -1066,7 +1052,7 @@ bool perl_matcher<BidiIterator, Allocator, traits>::match_endmark()
          {
             pstate = recursion_stack.back().preturn_address;
             *m_presult = recursion_stack.back().results;
-            push_recursion(recursion_stack.back().idx, recursion_stack.back().preturn_address, m_presult, &recursion_stack.back().results);
+            push_recursion(recursion_stack.back().idx, recursion_stack.back().preturn_address, &recursion_stack.back().results);
             recursion_stack.pop_back();
             push_repeater_count(-(2 + index), &next_count);
          }
@@ -1089,8 +1075,8 @@ bool perl_matcher<BidiIterator, Allocator, traits>::match_match()
    {
       BOOST_ASSERT(0 == recursion_stack.back().idx);
       pstate = recursion_stack.back().preturn_address;
-      push_recursion(recursion_stack.back().idx, recursion_stack.back().preturn_address, m_presult, &recursion_stack.back().results);
       *m_presult = recursion_stack.back().results;
+      push_recursion(recursion_stack.back().idx, recursion_stack.back().preturn_address, &recursion_stack.back().results);
       recursion_stack.pop_back();
       return true;
    }
@@ -1195,15 +1181,10 @@ bool perl_matcher<BidiIterator, Allocator, traits>::skip_until_paren(int index, 
          {
             // Unenclosed closing ), occurs when (*ACCEPT) is inside some other 
             // parenthesis which may or may not have other side effects associated with it.
-            const re_syntax_base* sp = pstate;
             match_endmark();
             if(!pstate)
             {
                unwind(true);
-               // unwind may leave pstate NULL if we've unwound a forward lookahead, in which
-               // case just move to the next state and keep looking...
-               if (!pstate)
-                  pstate = sp->next.p;
             }
          }
          continue;
@@ -1776,18 +1757,14 @@ bool perl_matcher<BidiIterator, Allocator, traits>::unwind_non_greedy_repeat(boo
 template <class BidiIterator, class Allocator, class traits>
 bool perl_matcher<BidiIterator, Allocator, traits>::unwind_recursion(bool r)
 {
-   // We are backtracking back inside a recursion, need to push the info
-   // back onto the recursion stack, and do so unconditionally, otherwise
-   // we can get mismatched pushes and pops...
    saved_recursion<results_type>* pmp = static_cast<saved_recursion<results_type>*>(m_backup_state);
-   if (!r)
+   if(!r)
    {
       recursion_stack.push_back(recursion_info<results_type>());
       recursion_stack.back().idx = pmp->recursion_id;
       recursion_stack.back().preturn_address = pmp->preturn_address;
-      recursion_stack.back().results = pmp->prior_results;
+      recursion_stack.back().results = pmp->results;
       recursion_stack.back().location_of_start = position;
-      *m_presult = pmp->internal_results;
    }
    boost::BOOST_REGEX_DETAIL_NS::inplace_destroy(pmp++);
    m_backup_state = pmp;
@@ -1797,13 +1774,9 @@ bool perl_matcher<BidiIterator, Allocator, traits>::unwind_recursion(bool r)
 template <class BidiIterator, class Allocator, class traits>
 bool perl_matcher<BidiIterator, Allocator, traits>::unwind_recursion_pop(bool r)
 {
-   // Backtracking out of a recursion, we must pop state off the recursion
-   // stack unconditionally to ensure matched pushes and pops:
    saved_state* pmp = static_cast<saved_state*>(m_backup_state);
-   if (!r && !recursion_stack.empty())
+   if(!r)
    {
-      *m_presult = recursion_stack.back().results;
-      position = recursion_stack.back().location_of_start;
       recursion_stack.pop_back();
    }
    boost::BOOST_REGEX_DETAIL_NS::inplace_destroy(pmp++);
@@ -1837,7 +1810,6 @@ bool perl_matcher<BidiIterator, Allocator, traits>::unwind_commit(bool b)
       // If we stop because we just unwound an assertion, put the
       // commit state back on the stack again:
       //
-      m_unwound_lookahead = false;
       saved_state* pmp = m_backup_state;
       --pmp;
       if(pmp < m_stack_base)

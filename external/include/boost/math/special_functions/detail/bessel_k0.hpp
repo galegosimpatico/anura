@@ -18,16 +18,6 @@
 #include <boost/math/policies/error_handling.hpp>
 #include <boost/assert.hpp>
 
-#if defined(__GNUC__) && defined(BOOST_MATH_USE_FLOAT128)
-//
-// This is the only way we can avoid
-// warning: non-standard suffix on floating constant [-Wpedantic]
-// when building with -Wall -pedantic.  Neither __extension__
-// nor #pragma diagnostic ignored work :(
-//
-#pragma GCC system_header
-#endif
-
 // Modified Bessel function of the second kind of order zero
 // minimax rational approximations on intervals, see
 // Russon and Blair, Chalk River Report AECL-3461, 1969,
@@ -55,12 +45,12 @@ struct bessel_k0_initializer
       {
          do_init(tag());
       }
-      static void do_init(const boost::integral_constant<int, 113>&)
+      static void do_init(const mpl::int_<113>&)
       {
          bessel_k0(T(0.5));
          bessel_k0(T(1.5));
       }
-      static void do_init(const boost::integral_constant<int, 64>&)
+      static void do_init(const mpl::int_<64>&)
       {
          bessel_k0(T(0.5));
          bessel_k0(T(1.5));
@@ -81,14 +71,14 @@ const typename bessel_k0_initializer<T, tag>::init bessel_k0_initializer<T, tag>
 
 
 template <typename T, int N>
-T bessel_k0_imp(const T& x, const boost::integral_constant<int, N>&)
+T bessel_k0_imp(const T& x, const mpl::int_<N>&)
 {
    BOOST_ASSERT(0);
    return 0;
 }
 
 template <typename T>
-T bessel_k0_imp(const T& x, const boost::integral_constant<int, 24>&)
+T bessel_k0_imp(const T& x, const mpl::int_<24>&)
 {
    BOOST_MATH_STD_USING
    if(x <= 1)
@@ -135,17 +125,17 @@ T bessel_k0_imp(const T& x, const boost::integral_constant<int, 24>&)
 
       static const T P[] =
       {
-         2.533141220e-01f,
-         5.221502603e-01f,
-         6.380180669e-02f,
-         -5.934976547e-02f
+         2.533141220e-01,
+         5.221502603e-01,
+         6.380180669e-02,
+         -5.934976547e-02
       };
       static const T Q[] =
       {
-         1.000000000e+00f,
-         2.679722431e+00f,
-         1.561635813e+00f,
-         1.573660661e-01f
+         1.000000000e+00,
+         2.679722431e+00,
+         1.561635813e+00,
+         1.573660661e-01
       };
       if(x < tools::log_max_value<T>())
          return ((tools::evaluate_rational(P, Q, T(1 / x)) + 1) * exp(-x) / sqrt(x));
@@ -158,7 +148,7 @@ T bessel_k0_imp(const T& x, const boost::integral_constant<int, 24>&)
 }
 
 template <typename T>
-T bessel_k0_imp(const T& x, const boost::integral_constant<int, 53>&)
+T bessel_k0_imp(const T& x, const mpl::int_<53>&)
 {
    BOOST_MATH_STD_USING
    if(x <= 1)
@@ -248,7 +238,7 @@ T bessel_k0_imp(const T& x, const boost::integral_constant<int, 53>&)
 }
 
 template <typename T>
-T bessel_k0_imp(const T& x, const boost::integral_constant<int, 64>&)
+T bessel_k0_imp(const T& x, const mpl::int_<64>&)
 {
    BOOST_MATH_STD_USING
       if(x <= 1)
@@ -348,7 +338,7 @@ T bessel_k0_imp(const T& x, const boost::integral_constant<int, 64>&)
 }
 
 template <typename T>
-T bessel_k0_imp(const T& x, const boost::integral_constant<int, 113>&)
+T bessel_k0_imp(const T& x, const mpl::int_<113>&)
 {
    BOOST_MATH_STD_USING
       if(x <= 1)
@@ -475,16 +465,16 @@ T bessel_k0_imp(const T& x, const boost::integral_constant<int, 113>&)
 }
 
 template <typename T>
-T bessel_k0_imp(const T& x, const boost::integral_constant<int, 0>&)
+T bessel_k0_imp(const T& x, const mpl::int_<0>&)
 {
    if(boost::math::tools::digits<T>() <= 24)
-      return bessel_k0_imp(x, boost::integral_constant<int, 24>());
+      return bessel_k0_imp(x, mpl::int_<24>());
    else if(boost::math::tools::digits<T>() <= 53)
-      return bessel_k0_imp(x, boost::integral_constant<int, 53>());
+      return bessel_k0_imp(x, mpl::int_<53>());
    else if(boost::math::tools::digits<T>() <= 64)
-      return bessel_k0_imp(x, boost::integral_constant<int, 64>());
+      return bessel_k0_imp(x, mpl::int_<64>());
    else if(boost::math::tools::digits<T>() <= 113)
-      return bessel_k0_imp(x, boost::integral_constant<int, 113>());
+      return bessel_k0_imp(x, mpl::int_<113>());
    BOOST_ASSERT(0);
    return 0;
 }
@@ -492,7 +482,7 @@ T bessel_k0_imp(const T& x, const boost::integral_constant<int, 0>&)
 template <typename T>
 inline T bessel_k0(const T& x)
 {
-   typedef boost::integral_constant<int,
+   typedef mpl::int_<
       ((std::numeric_limits<T>::digits == 0) || (std::numeric_limits<T>::radix != 2)) ?
       0 :
       std::numeric_limits<T>::digits <= 24 ?

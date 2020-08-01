@@ -48,13 +48,6 @@ namespace impl
             return this->min_;
         }
 
-        // make this accumulator serializeable
-        template<class Archive>
-        void serialize(Archive & ar, const unsigned int file_version)
-        { 
-            ar & min_;
-        }
-
     private:
         Sample min_;
     };

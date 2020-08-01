@@ -31,7 +31,6 @@
 
 #include <boost/log/expressions/formatters/if.hpp>
 #include <boost/log/expressions/formatters/wrap_formatter.hpp>
-#include <boost/log/expressions/formatters/auto_newline.hpp>
 
 #ifdef BOOST_HAS_PRAGMA_ONCE
 #pragma once

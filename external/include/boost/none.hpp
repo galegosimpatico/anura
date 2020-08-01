@@ -13,7 +13,6 @@
 #ifndef BOOST_NONE_17SEP2003_HPP
 #define BOOST_NONE_17SEP2003_HPP
 
-#include "boost/config.hpp"
 #include "boost/none_t.hpp"
 
 // NOTE: Borland users have to include this header outside any precompiled headers
@@ -24,7 +23,7 @@ namespace boost {
 
 #ifdef BOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE
 
-BOOST_INLINE_VARIABLE none_t const none = (static_cast<none_t>(0)) ;
+none_t const none = (static_cast<none_t>(0)) ;
 
 #elif defined BOOST_OPTIONAL_USE_SINGLETON_DEFINITION_OF_NONE
 
@@ -36,7 +35,7 @@ namespace detail { namespace optional_detail {
   {
     static const T instance;
   };
-
+  
   template <typename T>
   const T none_instance<T>::instance = T(); // global, but because 'tis a template, no cpp file required
 
@@ -50,7 +49,7 @@ namespace {
 
 #else
 
-BOOST_INLINE_VARIABLE const none_t none ((none_t::init_tag()));
+const none_t none ((none_t::init_tag()));
 
 #endif // older definitions
 

@@ -3,8 +3,8 @@
 // Copyright (c) 2007-2012 Barend Gehrels, Amsterdam, the Netherlands.
 // Copyright (c) 2017 Adam Wulkiewicz, Lodz, Poland.
 
-// This file was modified by Oracle on 2017, 2018.
-// Modifications copyright (c) 2017-2018 Oracle and/or its affiliates.
+// This file was modified by Oracle on 2017.
+// Modifications copyright (c) 2017 Oracle and/or its affiliates.
 
 // Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
 
@@ -77,31 +77,26 @@ struct self_section_visitor
     RobustPolicy const& m_rescale_policy;
     Turns& m_turns;
     InterruptPolicy& m_interrupt_policy;
-    int m_source_index;
-    bool m_skip_adjacent;
+    std::size_t m_source_index;
 
     inline self_section_visitor(Geometry const& g,
                                 IntersectionStrategy const& is,
                                 RobustPolicy const& rp,
                                 Turns& turns,
                                 InterruptPolicy& ip,
-                                int source_index,
-                                bool skip_adjacent)
+                                std::size_t source_index)
         : m_geometry(g)
         , m_intersection_strategy(is)
         , m_rescale_policy(rp)
         , m_turns(turns)
         , m_interrupt_policy(ip)
         , m_source_index(source_index)
-        , m_skip_adjacent(skip_adjacent)
     {}
 
     template <typename Section>
     inline bool apply(Section const& sec1, Section const& sec2)
     {
-        if (! detail::disjoint::disjoint_box_box(sec1.bounding_box,
-                                                 sec2.bounding_box,
-                                                 m_intersection_strategy.get_disjoint_box_box_strategy())
+        if (! detail::disjoint::disjoint_box_box(sec1.bounding_box, sec2.bounding_box)
                 && ! sec1.duplicate
                 && ! sec2.duplicate)
         {
@@ -114,7 +109,7 @@ struct self_section_visitor
                         TurnPolicy
                     >::apply(m_source_index, m_geometry, sec1,
                              m_source_index, m_geometry, sec2,
-                             false, m_skip_adjacent,
+                             false,
                              m_intersection_strategy,
                              m_rescale_policy,
                              m_turns, m_interrupt_policy);
@@ -137,7 +132,7 @@ struct get_turns
             RobustPolicy const& robust_policy,
             Turns& turns,
             InterruptPolicy& interrupt_policy,
-            int source_index, bool skip_adjacent)
+            std::size_t source_index)
     {
         typedef model::box
             <
@@ -148,39 +143,27 @@ struct get_turns
                 >::type
             > box_type;
 
-        // sectionalize in two dimensions to detect
-        // all potential spikes correctly
-        typedef geometry::sections<box_type, 2> sections_type;
+        typedef geometry::sections<box_type, 1> sections_type;
 
-        typedef boost::mpl::vector_c<std::size_t, 0, 1> dimensions;
+        typedef boost::mpl::vector_c<std::size_t, 0> dimensions;
 
         sections_type sec;
         geometry::sectionalize<Reverse, dimensions>(geometry, robust_policy, sec,
-                                                    intersection_strategy.get_envelope_strategy(),
-                                                    intersection_strategy.get_expand_strategy());
+                                                  intersection_strategy.get_envelope_strategy());
 
         self_section_visitor
             <
                 Reverse, Geometry,
                 Turns, TurnPolicy, IntersectionStrategy, RobustPolicy, InterruptPolicy
-            > visitor(geometry, intersection_strategy, robust_policy, turns, interrupt_policy, source_index, skip_adjacent);
-
-        typedef detail::section::get_section_box
-            <
-                typename IntersectionStrategy::expand_box_strategy_type
-            > get_section_box_type;
-        typedef detail::section::overlaps_section_box
-            <
-                typename IntersectionStrategy::disjoint_box_box_strategy_type
-            > overlaps_section_box_type;
+            > visitor(geometry, intersection_strategy, robust_policy, turns, interrupt_policy, source_index);
 
         // false if interrupted
         geometry::partition
             <
                 box_type
             >::apply(sec, visitor,
-                     get_section_box_type(),
-                     overlaps_section_box_type());
+                     detail::section::get_section_box(),
+                     detail::section::overlaps_section_box());
 
         return ! interrupt_policy.has_intersections;
     }
@@ -241,8 +224,7 @@ struct self_get_turn_points
             RobustPolicy const& ,
             Turns& ,
             InterruptPolicy& ,
-            int /*source_index*/,
-            bool /*skip_adjacent*/)
+            std::size_t)
     {
         return true;
     }
@@ -304,8 +286,7 @@ inline void self_turns(Geometry const& geometry,
                        RobustPolicy const& robust_policy,
                        Turns& turns,
                        InterruptPolicy& interrupt_policy,
-                       int source_index = 0,
-                       bool skip_adjacent = false)
+                       std::size_t source_index = 0)
 {
     concepts::check<Geometry const>();
 
@@ -317,8 +298,7 @@ inline void self_turns(Geometry const& geometry,
                 typename tag<Geometry>::type,
                 Geometry,
                 turn_policy
-            >::apply(geometry, strategy, robust_policy, turns, interrupt_policy,
-                     source_index, skip_adjacent);
+            >::apply(geometry, strategy, robust_policy, turns, interrupt_policy, source_index);
 }
 
 }} // namespace detail::self_get_turn_points
@@ -336,8 +316,6 @@ inline void self_turns(Geometry const& geometry,
     \param turns container which will contain intersection points
     \param interrupt_policy policy determining if process is stopped
         when intersection is found
-    \param source_index source index for generated turns
-    \param skip_adjacent indicates if adjacent turns should be skipped
  */
 template
 <
@@ -353,8 +331,7 @@ inline void self_turns(Geometry const& geometry,
                        RobustPolicy const& robust_policy,
                        Turns& turns,
                        InterruptPolicy& interrupt_policy,
-                       int source_index = 0,
-                       bool skip_adjacent = false)
+                       std::size_t source_index = 0)
 {
     concepts::check<Geometry const>();
 
@@ -367,8 +344,7 @@ inline void self_turns(Geometry const& geometry,
             <
                 reverse,
                 AssignPolicy
-            >(geometry, strategy, robust_policy, turns, interrupt_policy,
-              source_index, skip_adjacent);
+            >(geometry, strategy, robust_policy, turns, interrupt_policy, source_index);
 }
 
 

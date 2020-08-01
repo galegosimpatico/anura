@@ -12,11 +12,10 @@
 
 
 #include <boost/process/detail/posix/handler.hpp>
-#include <boost/process/detail/used_handles.hpp>
 
 namespace boost { namespace process { namespace detail { namespace posix {
 
-struct close_in : handler_base_ext, ::boost::process::detail::uses_handles
+struct close_in : handler_base_ext
 {
     template <class Executor>
     void on_exec_setup(Executor &e) const
@@ -24,9 +23,6 @@ struct close_in : handler_base_ext, ::boost::process::detail::uses_handles
         if (::close(STDIN_FILENO) == -1)
             e.set_error(::boost::process::detail::get_last_error(), "close() failed");
     }
-
-    int get_used_handles() {return STDIN_FILENO;}
-
 };
 
 }}}}

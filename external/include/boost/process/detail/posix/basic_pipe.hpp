@@ -29,7 +29,7 @@ class basic_pipe
     int _sink   = -1;
 public:
     explicit basic_pipe(int source, int sink) : _source(source), _sink(sink) {}
-    explicit basic_pipe(int source, int sink, const std::string&) : _source(source), _sink(sink) {}
+    explicit basic_pipe(int source, int sink, const std::string & name) : _source(source), _sink(sink) {}
     typedef CharT                      char_type  ;
     typedef          Traits            traits_type;
     typedef typename Traits::int_type  int_type   ;
@@ -82,30 +82,22 @@ public:
 
     int_type write(const char_type * data, int_type count)
     {
-        int_type write_len;
-        while ((write_len = ::write(_sink, data, count * sizeof(char_type))) == -1)
-        {
-            //Try again if interrupted
-            auto err = errno;
-            if (err != EINTR)
-                ::boost::process::detail::throw_last_error();
-        }
+        auto write_len = ::write(_sink, data, count * sizeof(char_type));
+        if (write_len == -1)
+            ::boost::process::detail::throw_last_error();
+
         return write_len;
     }
     int_type read(char_type * data, int_type count)
     {
-        int_type read_len;
-        while ((read_len = ::read(_source, data, count * sizeof(char_type))) == -1)
-        {
-            //Try again if interrupted
-            auto err = errno;
-            if (err != EINTR)
-                ::boost::process::detail::throw_last_error();
-        }
+        auto read_len = ::read(_source, data, count * sizeof(char_type));
+        if (read_len == -1)
+            ::boost::process::detail::throw_last_error();
+
         return read_len;
     }
 
-    bool is_open() const
+    bool is_open()
     {
         return (_source != -1) ||
                (_sink   != -1);
@@ -113,10 +105,8 @@ public:
 
     void close()
     {
-        if (_source != -1)
-            ::close(_source);
-        if (_sink != -1)
-            ::close(_sink);
+        ::close(_source);
+        ::close(_sink);
         _source = -1;
         _sink   = -1;
     }

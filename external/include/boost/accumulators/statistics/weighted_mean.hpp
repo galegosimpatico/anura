@@ -97,13 +97,6 @@ namespace impl
             return this->mean;
         }
 
-        // make this accumulator serializeable
-        template<class Archive>
-        void serialize(Archive & ar, const unsigned int file_version)
-        { 
-            ar & mean;
-        }
-
     private:
         result_type mean;
     };

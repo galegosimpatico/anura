@@ -58,13 +58,6 @@ namespace impl
             return numeric::fdiv(this->sum_, rolling_count(args));
         }
 
-        // make this accumulator serializeable
-        template<class Archive>
-        void serialize(Archive & ar, const unsigned int file_version)
-        { 
-            ar & sum_;
-        }
-
     private:
         result_type sum_;
     };

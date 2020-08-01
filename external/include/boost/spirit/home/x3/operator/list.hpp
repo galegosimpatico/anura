@@ -5,8 +5,8 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
-#if !defined(BOOST_SPIRIT_X3_LIST_MARCH_24_2007_1031AM)
-#define BOOST_SPIRIT_X3_LIST_MARCH_24_2007_1031AM
+#if !defined(SPIRIT_LIST_MARCH_24_2007_1031AM)
+#define SPIRIT_LIST_MARCH_24_2007_1031AM
 
 #include <boost/spirit/home/x3/core/parser.hpp>
 #include <boost/spirit/home/x3/support/traits/container_traits.hpp>
@@ -22,7 +22,7 @@ namespace boost { namespace spirit { namespace x3
         static bool const handles_container = true;
         static bool const has_attribute = true;
 
-        constexpr list(Left const& left, Right const& right)
+        list(Left const& left, Right const& right)
           : base_type(left, right) {}
 
         template <typename Iterator, typename Context
@@ -35,20 +35,21 @@ namespace boost { namespace spirit { namespace x3
                 this->left, first, last, context, rcontext, attr))
                 return false;
 
-            Iterator iter = first;
-            while (this->right.parse(iter, last, context, rcontext, unused)
+            Iterator save = first;
+            while (this->right.parse(first, last, context, rcontext, unused)
                 && detail::parse_into_container(
-                    this->left, iter, last, context, rcontext, attr))
+                    this->left, first, last, context, rcontext, attr))
             {
-                first = iter;
+                save = first;
             }
 
+            first = save;
             return true;
         }
     };
 
     template <typename Left, typename Right>
-    constexpr list<
+    inline list<
         typename extension::as_parser<Left>::value_type
       , typename extension::as_parser<Right>::value_type>
     operator%(Left const& left, Right const& right)

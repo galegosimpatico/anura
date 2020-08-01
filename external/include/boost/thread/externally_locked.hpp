@@ -24,7 +24,6 @@
 
 namespace boost
 {
-  class mutex;
 
   /**
    * externally_locked cloaks an object of type T, and actually provides full

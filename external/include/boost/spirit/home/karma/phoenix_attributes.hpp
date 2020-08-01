@@ -19,14 +19,8 @@
 #include <boost/spirit/home/karma/detail/indirect_iterator.hpp>
 #include <boost/spirit/home/support/container.hpp>
 
+#include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/utility/result_of.hpp>
-
-///////////////////////////////////////////////////////////////////////////////
-namespace boost { namespace phoenix
-{
-    template <typename Expr>
-    struct actor;
-}}
 
 ///////////////////////////////////////////////////////////////////////////////
 namespace boost { namespace spirit { namespace traits

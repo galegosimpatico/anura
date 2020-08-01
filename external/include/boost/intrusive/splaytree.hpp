@@ -613,46 +613,46 @@ class splaytree
    //Assert if passed value traits are compatible with the type
    BOOST_STATIC_ASSERT((detail::is_same<typename value_traits::value_type, T>::value));
 
-   BOOST_INTRUSIVE_FORCEINLINE splaytree()
+   splaytree()
       :  Base()
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE explicit splaytree( const key_compare &cmp, const value_traits &v_traits = value_traits())
+   explicit splaytree( const key_compare &cmp, const value_traits &v_traits = value_traits())
       :  Base(cmp, v_traits)
    {}
 
    template<class Iterator>
-   BOOST_INTRUSIVE_FORCEINLINE splaytree( bool unique, Iterator b, Iterator e
+   splaytree( bool unique, Iterator b, Iterator e
          , const key_compare &cmp = key_compare()
          , const value_traits &v_traits = value_traits())
       :  Base(unique, b, e, cmp, v_traits)
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE splaytree(BOOST_RV_REF(splaytree) x)
+   splaytree(BOOST_RV_REF(splaytree) x)
       :  Base(BOOST_MOVE_BASE(Base, x))
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE splaytree& operator=(BOOST_RV_REF(splaytree) x)
+   splaytree& operator=(BOOST_RV_REF(splaytree) x)
    {  return static_cast<splaytree &>(this->Base::operator=(BOOST_MOVE_BASE(Base, x)));  }
 
    template <class Cloner, class Disposer>
-   BOOST_INTRUSIVE_FORCEINLINE void clone_from(const splaytree &src, Cloner cloner, Disposer disposer)
+   void clone_from(const splaytree &src, Cloner cloner, Disposer disposer)
    {  Base::clone_from(src, cloner, disposer);  }
 
    template <class Cloner, class Disposer>
-   BOOST_INTRUSIVE_FORCEINLINE void clone_from(BOOST_RV_REF(splaytree) src, Cloner cloner, Disposer disposer)
+   void clone_from(BOOST_RV_REF(splaytree) src, Cloner cloner, Disposer disposer)
    {  Base::clone_from(BOOST_MOVE_BASE(Base, src), cloner, disposer);  }
 
-   BOOST_INTRUSIVE_FORCEINLINE static splaytree &container_from_end_iterator(iterator end_iterator)
+   static splaytree &container_from_end_iterator(iterator end_iterator)
    {  return static_cast<splaytree &>(Base::container_from_end_iterator(end_iterator));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static const splaytree &container_from_end_iterator(const_iterator end_iterator)
+   static const splaytree &container_from_end_iterator(const_iterator end_iterator)
    {  return static_cast<const splaytree &>(Base::container_from_end_iterator(end_iterator));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static splaytree &container_from_iterator(iterator it)
+   static splaytree &container_from_iterator(iterator it)
    {  return static_cast<splaytree &>(Base::container_from_iterator(it));   }
 
-   BOOST_INTRUSIVE_FORCEINLINE static const splaytree &container_from_iterator(const_iterator it)
+   static const splaytree &container_from_iterator(const_iterator it)
    {  return static_cast<const splaytree &>(Base::container_from_iterator(it));   }
 };
 

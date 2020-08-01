@@ -11,8 +11,6 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-#include <exception>
-#include <boost/core/scoped_enum.hpp>
 #include <boost/thread/detail/config.hpp>
 #include <boost/thread/detail/move.hpp>
 
@@ -27,7 +25,7 @@ namespace concurrent
   { success = 0, empty, full, closed, busy, timeout, not_ready }
   BOOST_SCOPED_ENUM_DECLARE_END(queue_op_status)
 
-  struct BOOST_SYMBOL_VISIBLE sync_queue_is_closed : std::exception
+  struct sync_queue_is_closed : std::exception
   {
   };
 

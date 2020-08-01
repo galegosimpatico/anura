@@ -49,7 +49,7 @@ namespace boost { namespace spirit { namespace x3
         result_type operator()(eol_parser const &) const { return "eol"; }
     };
 
-    constexpr auto eol = eol_parser{};
+    auto const eol = eol_parser{};
 }}}
 
 #endif

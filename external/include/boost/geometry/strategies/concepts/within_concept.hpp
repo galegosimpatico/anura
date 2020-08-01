@@ -4,10 +4,6 @@
 // Copyright (c) 2008-2012 Bruno Lalande, Paris, France.
 // Copyright (c) 2009-2012 Mateusz Loskot, London, UK.
 
-// This file was modified by Oracle on 2018, 2019.
-// Modifications copyright (c) 2018, 2019 Oracle and/or its affiliates.
-// Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
-
 // Parts of Boost.Geometry are redesigned from Geodan's Geographic Library
 // (geolib/GGL), copyright (c) 1995-2010 Geodan, Amsterdam, the Netherlands.
 
@@ -21,15 +17,7 @@
 
 
 #include <boost/concept_check.hpp>
-#include <boost/core/ignore_unused.hpp>
 #include <boost/function_types/result_type.hpp>
-
-#include <boost/geometry/core/tag.hpp>
-#include <boost/geometry/core/tag_cast.hpp>
-#include <boost/geometry/core/tags.hpp>
-
-#include <boost/geometry/geometries/concepts/box_concept.hpp>
-#include <boost/geometry/geometries/concepts/point_concept.hpp>
 
 #include <boost/geometry/util/parameter_type_of.hpp>
 
@@ -42,12 +30,10 @@ namespace boost { namespace geometry { namespace concepts
 \brief Checks strategy for within (point-in-polygon)
 \ingroup within
 */
-template <typename Point, typename Polygonal, typename Strategy>
+template <typename Strategy>
 class WithinStrategyPolygonal
 {
 #ifndef DOXYGEN_NO_CONCEPT_MEMBERS
-
-    typedef typename geometry::point_type<Polygonal>::type point_of_segment;
 
     // 1) must define state_type
     typedef typename Strategy::state_type state_type;
@@ -55,7 +41,7 @@ class WithinStrategyPolygonal
     struct checker
     {
         template <typename ApplyMethod, typename ResultMethod>
-        static void apply(ApplyMethod, ResultMethod)
+        static void apply(ApplyMethod const&, ResultMethod const& )
         {
             typedef typename parameter_type_of
                 <
@@ -107,7 +93,9 @@ class WithinStrategyPolygonal
             bool b = str->apply(*p, *sp, *sp, *st);
             int r = str->result(*st);
 
-            boost::ignore_unused(r, b, str);
+            boost::ignore_unused_variable_warning(r);
+            boost::ignore_unused_variable_warning(b);
+            boost::ignore_unused_variable_warning(str);
         }
     };
 
@@ -115,13 +103,12 @@ class WithinStrategyPolygonal
 public :
     BOOST_CONCEPT_USAGE(WithinStrategyPolygonal)
     {
-        checker::apply(&Strategy::template apply<Point, point_of_segment>,
-                       &Strategy::result);
+        checker::apply(&Strategy::apply, &Strategy::result);
     }
 #endif
 };
 
-template <typename Point, typename Box, typename Strategy>
+template <typename Strategy>
 class WithinStrategyPointBox
 {
 #ifndef DOXYGEN_NO_CONCEPT_MEMBERS
@@ -129,7 +116,7 @@ class WithinStrategyPointBox
     struct checker
     {
         template <typename ApplyMethod>
-        static void apply(ApplyMethod)
+        static void apply(ApplyMethod const&)
         {
             typedef typename parameter_type_of
                 <
@@ -171,7 +158,8 @@ class WithinStrategyPointBox
 
             bool b = str->apply(*p, *bx);
 
-            boost::ignore_unused(b, str);
+            boost::ignore_unused_variable_warning(b);
+            boost::ignore_unused_variable_warning(str);
         }
     };
 
@@ -179,12 +167,12 @@ class WithinStrategyPointBox
 public :
     BOOST_CONCEPT_USAGE(WithinStrategyPointBox)
     {
-        checker::apply(&Strategy::template apply<Point, Box>);
+        checker::apply(&Strategy::apply);
     }
 #endif
 };
 
-template <typename Box1, typename Box2, typename Strategy>
+template <typename Strategy>
 class WithinStrategyBoxBox
 {
 #ifndef DOXYGEN_NO_CONCEPT_MEMBERS
@@ -234,7 +222,8 @@ class WithinStrategyBoxBox
 
             bool b = str->apply(*b1, *b2);
 
-            boost::ignore_unused(b, str);
+            boost::ignore_unused_variable_warning(b);
+            boost::ignore_unused_variable_warning(str);
         }
     };
 
@@ -242,7 +231,7 @@ class WithinStrategyBoxBox
 public :
     BOOST_CONCEPT_USAGE(WithinStrategyBoxBox)
     {
-        checker::apply(&Strategy::template apply<Box1, Box2>);
+        checker::apply(&Strategy::apply);
     }
 #endif
 };
@@ -255,38 +244,28 @@ namespace within
 namespace dispatch
 {
 
-template
-<
-    typename Geometry1, typename Geometry2,
-    typename FirstTag, typename SecondTag, typename CastedTag,
-    typename Strategy
->
+template <typename FirstTag, typename SecondTag, typename CastedTag, typename Strategy>
 struct check_within
 {};
 
 
-template
-<
-    typename Geometry1, typename Geometry2,
-    typename AnyTag,
-    typename Strategy
->
-struct check_within<Geometry1, Geometry2, point_tag, AnyTag, areal_tag, Strategy>
+template <typename AnyTag, typename Strategy>
+struct check_within<point_tag, AnyTag, areal_tag, Strategy>
 {
-    BOOST_CONCEPT_ASSERT( (WithinStrategyPolygonal<Geometry1, Geometry2, Strategy>) );
+    BOOST_CONCEPT_ASSERT( (WithinStrategyPolygonal<Strategy>) );
 };
 
 
-template <typename Geometry1, typename Geometry2, typename Strategy>
-struct check_within<Geometry1, Geometry2, point_tag, box_tag, areal_tag, Strategy>
+template <typename Strategy>
+struct check_within<point_tag, box_tag, areal_tag, Strategy>
 {
-    BOOST_CONCEPT_ASSERT( (WithinStrategyPointBox<Geometry1, Geometry2, Strategy>) );
+    BOOST_CONCEPT_ASSERT( (WithinStrategyPointBox<Strategy>) );
 };
 
-template <typename Geometry1, typename Geometry2, typename Strategy>
-struct check_within<Geometry1, Geometry2, box_tag, box_tag, areal_tag, Strategy>
+template <typename Strategy>
+struct check_within<box_tag, box_tag, areal_tag, Strategy>
 {
-    BOOST_CONCEPT_ASSERT( (WithinStrategyBoxBox<Geometry1, Geometry2, Strategy>) );
+    BOOST_CONCEPT_ASSERT( (WithinStrategyBoxBox<Strategy>) );
 };
 
 
@@ -298,19 +277,11 @@ struct check_within<Geometry1, Geometry2, box_tag, box_tag, areal_tag, Strategy>
 \brief Checks, in compile-time, the concept of any within-strategy
 \ingroup concepts
 */
-template <typename Geometry1, typename Geometry2, typename Strategy>
+template <typename FirstTag, typename SecondTag, typename CastedTag, typename Strategy>
 inline void check()
 {
-    dispatch::check_within
-        <
-            Geometry1,
-            Geometry2,
-            typename tag<Geometry1>::type,
-            typename tag<Geometry2>::type,
-            typename tag_cast<typename tag<Geometry2>::type, areal_tag>::type,
-            Strategy
-        > c;
-    boost::ignore_unused(c);
+    dispatch::check_within<FirstTag, SecondTag, CastedTag, Strategy> c;
+    boost::ignore_unused_variable_warning(c);
 }
 
 

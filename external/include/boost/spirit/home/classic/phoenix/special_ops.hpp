@@ -5,8 +5,8 @@
   Distributed under the Boost Software License, Version 1.0. (See accompanying
   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
-#ifndef BOOST_SPIRIT_CLASSIC_PHOENIX_SPECIAL_OPS_HPP
-#define BOOST_SPIRIT_CLASSIC_PHOENIX_SPECIAL_OPS_HPP
+#ifndef PHOENIX_SPECIAL_OPS_HPP
+#define PHOENIX_SPECIAL_OPS_HPP
 
 #include <boost/config.hpp>
 #ifdef BOOST_NO_STRINGSTREAM
@@ -20,7 +20,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <boost/spirit/home/classic/phoenix/operators.hpp>
 #include <iosfwd>
-#include <complex>
 
 ///////////////////////////////////////////////////////////////////////////////
 #if defined(_STLPORT_VERSION) && defined(__STL_USE_OWN_NAMESPACE)

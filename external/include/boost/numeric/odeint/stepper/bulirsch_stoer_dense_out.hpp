@@ -391,11 +391,6 @@ public:
     }
 
 
-protected:
-
-    time_type m_max_dt;
-
-
 private:
 
     template< class StateInOut , class StateVector >
@@ -671,6 +666,8 @@ private:
 
     default_error_checker< value_type, algebra_type , operations_type > m_error_checker;
     modified_midpoint_dense_out< state_type , value_type , deriv_type , time_type , algebra_type , operations_type , resizer_type > m_midpoint;
+
+    time_type m_max_dt;
 
     bool m_control_interpolation;
 

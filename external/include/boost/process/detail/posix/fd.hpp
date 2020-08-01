@@ -12,13 +12,11 @@
 
 #include <boost/process/detail/posix/handler.hpp>
 #include <unistd.h>
-#include <boost/process/detail/used_handles.hpp>
-#include <array>
 
 namespace boost { namespace process { namespace detail { namespace posix {
 
 
-struct close_fd_ : handler_base_ext, ::boost::process::detail::uses_handles
+struct close_fd_ : handler_base_ext
 {
     close_fd_(int fd) : fd_(fd) {}
 
@@ -29,15 +27,12 @@ struct close_fd_ : handler_base_ext, ::boost::process::detail::uses_handles
             e.set_error(::boost::process::detail::get_last_error(), "close() failed");
     }
 
-    int get_used_handles() {return fd_;}
-
-
 private:
     int fd_;
 };
 
 template <class Range>
-struct close_fds_ : handler_base_ext, ::boost::process::detail::uses_handles
+struct close_fds_ : handler_base_ext
 {
 public:
     close_fds_(const Range &fds) : fds_(fds) {}
@@ -53,8 +48,6 @@ public:
             }
     }
 
-    Range& get_used_handles() {return fds_;}
-
 private:
     Range fds_;
 };
@@ -62,7 +55,7 @@ private:
 
 
 template <class FileDescriptor>
-struct bind_fd_ : handler_base_ext, ::boost::process::detail::uses_handles
+struct bind_fd_ : handler_base_ext
 {
 public:
     bind_fd_(int id, const FileDescriptor &fd) : id_(id), fd_(fd) {}
@@ -73,9 +66,6 @@ public:
         if (::dup2(fd_, id_) == -1)
              e.set_error(::boost::process::detail::get_last_error(), "dup2() failed");
     }
-
-    std::array<int, 2> get_used_handles() {return {id_, fd_};}
-
 
 private:
     int id_;

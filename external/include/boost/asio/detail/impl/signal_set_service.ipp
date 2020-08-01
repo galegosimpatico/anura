@@ -2,7 +2,7 @@
 // detail/impl/signal_set_service.ipp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2020 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -18,12 +18,10 @@
 #include <boost/asio/detail/config.hpp>
 
 #include <cstring>
-#include <stdexcept>
 #include <boost/asio/detail/reactor.hpp>
 #include <boost/asio/detail/signal_blocker.hpp>
 #include <boost/asio/detail/signal_set_service.hpp>
 #include <boost/asio/detail/static_mutex.hpp>
-#include <boost/asio/detail/throw_exception.hpp>
 
 #include <boost/asio/detail/push_options.hpp>
 
@@ -94,7 +92,7 @@ public:
   {
   }
 
-  static status do_perform(reactor_op*)
+  static bool do_perform(reactor_op*)
   {
     signal_state* state = get_signal_state();
 
@@ -104,10 +102,10 @@ public:
       if (signal_number >= 0 && signal_number < max_signal_number)
         signal_set_service::deliver_signal(signal_number);
 
-    return not_done;
+    return false;
   }
 
-  static void do_complete(void* /*owner*/, operation* base,
+  static void do_complete(io_service_impl* /*owner*/, operation* base,
       const boost::system::error_code& /*ec*/,
       std::size_t /*bytes_transferred*/)
   {
@@ -119,13 +117,13 @@ public:
        //   && !defined(BOOST_ASIO_WINDOWS_RUNTIME)
        //   && !defined(__CYGWIN__)
 
-signal_set_service::signal_set_service(execution_context& context)
-  : execution_context_service_base<signal_set_service>(context),
-    scheduler_(boost::asio::use_service<scheduler_impl>(context)),
+signal_set_service::signal_set_service(
+    boost::asio::io_service& io_service)
+  : io_service_(boost::asio::use_service<io_service_impl>(io_service)),
 #if !defined(BOOST_ASIO_WINDOWS) \
   && !defined(BOOST_ASIO_WINDOWS_RUNTIME) \
   && !defined(__CYGWIN__)
-    reactor_(boost::asio::use_service<reactor>(context)),
+    reactor_(boost::asio::use_service<reactor>(io_service)),
 #endif // !defined(BOOST_ASIO_WINDOWS)
        //   && !defined(BOOST_ASIO_WINDOWS_RUNTIME)
        //   && !defined(__CYGWIN__)
@@ -153,7 +151,7 @@ signal_set_service::~signal_set_service()
   remove_service(this);
 }
 
-void signal_set_service::shutdown()
+void signal_set_service::shutdown_service()
 {
   remove_service(this);
 
@@ -169,10 +167,11 @@ void signal_set_service::shutdown()
     }
   }
 
-  scheduler_.abandon_operations(ops);
+  io_service_.abandon_operations(ops);
 }
 
-void signal_set_service::notify_fork(execution_context::fork_event fork_ev)
+void signal_set_service::fork_service(
+    boost::asio::io_service::fork_event fork_ev)
 {
 #if !defined(BOOST_ASIO_WINDOWS) \
   && !defined(BOOST_ASIO_WINDOWS_RUNTIME) \
@@ -182,7 +181,7 @@ void signal_set_service::notify_fork(execution_context::fork_event fork_ev)
 
   switch (fork_ev)
   {
-  case execution_context::fork_prepare:
+  case boost::asio::io_service::fork_prepare:
     {
       int read_descriptor = state->read_descriptor_;
       state->fork_prepared_ = true;
@@ -191,7 +190,7 @@ void signal_set_service::notify_fork(execution_context::fork_event fork_ev)
       reactor_.cleanup_descriptor_data(reactor_data_);
     }
     break;
-  case execution_context::fork_parent:
+  case boost::asio::io_service::fork_parent:
     if (state->fork_prepared_)
     {
       int read_descriptor = state->read_descriptor_;
@@ -201,7 +200,7 @@ void signal_set_service::notify_fork(execution_context::fork_event fork_ev)
           read_descriptor, reactor_data_, new pipe_read_op);
     }
     break;
-  case execution_context::fork_child:
+  case boost::asio::io_service::fork_child:
     if (state->fork_prepared_)
     {
       boost::asio::detail::signal_blocker blocker;
@@ -440,8 +439,7 @@ boost::system::error_code signal_set_service::cancel(
     signal_set_service::implementation_type& impl,
     boost::system::error_code& ec)
 {
-  BOOST_ASIO_HANDLER_OPERATION((scheduler_.context(),
-        "signal_set", &impl, 0, "cancel"));
+  BOOST_ASIO_HANDLER_OPERATION(("signal_set", &impl, "cancel"));
 
   op_queue<operation> ops;
   {
@@ -456,7 +454,7 @@ boost::system::error_code signal_set_service::cancel(
     }
   }
 
-  scheduler_.post_deferred_completions(ops);
+  io_service_.post_deferred_completions(ops);
 
   ec = boost::system::error_code();
   return ec;
@@ -492,7 +490,7 @@ void signal_set_service::deliver_signal(int signal_number)
       reg = reg->next_in_table_;
     }
 
-    service->scheduler_.post_deferred_completions(ops);
+    service->io_service_.post_deferred_completions(ops);
 
     service = service->next_;
   }
@@ -508,22 +506,6 @@ void signal_set_service::add_service(signal_set_service* service)
   if (state->service_list_ == 0)
     open_descriptors();
 #endif // !defined(BOOST_ASIO_WINDOWS) && !defined(__CYGWIN__)
-
-  // If a scheduler_ object is thread-unsafe then it must be the only
-  // scheduler used to create signal_set objects.
-  if (state->service_list_ != 0)
-  {
-    if (!BOOST_ASIO_CONCURRENCY_HINT_IS_LOCKING(SCHEDULER,
-          service->scheduler_.concurrency_hint())
-        || !BOOST_ASIO_CONCURRENCY_HINT_IS_LOCKING(SCHEDULER,
-          state->service_list_->scheduler_.concurrency_hint()))
-    {
-      std::logic_error ex(
-          "Thread-unsafe execution context objects require "
-          "exclusive access to signal handling.");
-      boost::asio::detail::throw_exception(ex);
-    }
-  }
 
   // Insert service into linked list of all services.
   service->next_ = state->service_list_;
@@ -638,7 +620,7 @@ void signal_set_service::close_descriptors()
 void signal_set_service::start_wait_op(
     signal_set_service::implementation_type& impl, signal_op* op)
 {
-  scheduler_.work_started();
+  io_service_.work_started();
 
   signal_state* state = get_signal_state();
   static_mutex::scoped_lock lock(state->mutex_);
@@ -650,7 +632,7 @@ void signal_set_service::start_wait_op(
     {
       --reg->undelivered_;
       op->signal_number_ = reg->signal_number_;
-      scheduler_.post_deferred_completion(op);
+      io_service_.post_deferred_completion(op);
       return;
     }
 

@@ -15,8 +15,8 @@
 // for small order, uniform asymptotic expansion for large order,
 // and iteration and root interlacing for negative order.
 //
-#ifndef BOOST_MATH_BESSEL_JY_ZERO_2013_01_18_HPP_
-  #define BOOST_MATH_BESSEL_JY_ZERO_2013_01_18_HPP_
+#ifndef _BESSEL_JY_ZERO_2013_01_18_HPP_
+  #define _BESSEL_JY_ZERO_2013_01_18_HPP_
 
   #include <algorithm>
   #include <boost/math/constants/constants.hpp>
@@ -614,4 +614,4 @@
     } // namespace bessel_zero
   } } } // namespace boost::math::detail
 
-#endif // BOOST_MATH_BESSEL_JY_ZERO_2013_01_18_HPP_
+#endif // _BESSEL_JY_ZERO_2013_01_18_HPP_

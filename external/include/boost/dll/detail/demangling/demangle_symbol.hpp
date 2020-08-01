@@ -8,12 +8,11 @@
 #ifndef BOOST_DLL_DEMANGLE_SYMBOL_HPP_
 #define BOOST_DLL_DEMANGLE_SYMBOL_HPP_
 
-#include <boost/dll/config.hpp>
+#include <boost/config.hpp>
 #include <string>
 #include <algorithm>
-#include <memory>
 
-#if defined(_MSC_VER) // MSVC, Clang-cl, and ICC on Windows
+#if defined(BOOST_MSVC) || defined(BOOST_MSVC_FULL_VER)
 
 namespace boost
 {
@@ -89,7 +88,7 @@ inline std::string demangle_symbol(const char *mangled_name)
 
 }
 
-//for my personal convenience
+//for my personal convinience
 inline std::string demangle_symbol(const std::string& mangled_name)
 {
     return demangle_symbol(mangled_name.c_str());

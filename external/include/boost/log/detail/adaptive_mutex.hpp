@@ -26,7 +26,6 @@
 
 #include <boost/throw_exception.hpp>
 #include <boost/thread/exceptions.hpp>
-#include <boost/assert/source_location.hpp>
 
 #if defined(BOOST_THREAD_POSIX) // This one can be defined by users, so it should go first
 #define BOOST_LOG_ADAPTIVE_MUTEX_USE_PTHREAD
@@ -39,14 +38,12 @@
 #if defined(BOOST_LOG_ADAPTIVE_MUTEX_USE_WINAPI)
 
 #include <boost/log/detail/pause.hpp>
-#include <boost/winapi/thread.hpp>
 #include <boost/detail/interlocked.hpp>
+#include <boost/detail/winapi/thread.hpp>
 
 #if defined(__INTEL_COMPILER) || defined(_MSC_VER)
 #    if defined(__INTEL_COMPILER)
 #        define BOOST_LOG_COMPILER_BARRIER __memory_barrier()
-#    elif defined(__clang__) // clang-win also defines _MSC_VER
-#        define BOOST_LOG_COMPILER_BARRIER __atomic_signal_fence(__ATOMIC_SEQ_CST)
 #    else
 extern "C" void _ReadWriteBarrier(void);
 #        if defined(BOOST_MSVC)
@@ -106,10 +103,10 @@ public:
             {
                 // Restart spinning after waking up this thread
                 pause_count = initial_pause;
-                boost::winapi::SwitchToThread();
+                SwitchToThread();
             }
 #else
-            boost::winapi::SwitchToThread();
+            SwitchToThread();
 #endif
         }
     }
@@ -215,7 +212,11 @@ private:
     template< typename ExceptionT >
     static BOOST_NOINLINE BOOST_LOG_NORETURN void throw_exception(int err, const char* descr, const char* func, const char* file, int line)
     {
-        boost::throw_exception(ExceptionT(err, descr), boost::source_location(file, line, func));
+#if !defined(BOOST_EXCEPTION_DISABLE)
+        boost::exception_detail::throw_exception_(ExceptionT(err, descr), func, file, line);
+#else
+        boost::throw_exception(ExceptionT(err, descr));
+#endif
     }
 };
 

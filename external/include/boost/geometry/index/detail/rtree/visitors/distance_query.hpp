@@ -4,10 +4,6 @@
 //
 // Copyright (c) 2011-2014 Adam Wulkiewicz, Lodz, Poland.
 //
-// This file was modified by Oracle on 2019.
-// Modifications copyright (c) 2019 Oracle and/or its affiliates.
-// Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
-//
 // Use, modification and distribution is subject to the Boost Software License,
 // Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -93,45 +89,41 @@ private:
     std::vector< std::pair<distance_type, Value> > m_neighbors;
 };
 
-template
-<
-    typename MembersHolder,
+template <
+    typename Value,
+    typename Options,
+    typename Translator,
+    typename Box,
+    typename Allocators,
     typename Predicates,
     unsigned DistancePredicateIndex,
     typename OutIter
 >
 class distance_query
-    : public MembersHolder::visitor_const
+    : public rtree::visitor<Value, typename Options::parameters_type, Box, Allocators, typename Options::node_tag, true>::type
 {
 public:
-    typedef typename MembersHolder::value_type value_type;
-    typedef typename MembersHolder::box_type box_type;
-    typedef typename MembersHolder::parameters_type parameters_type;
-    typedef typename MembersHolder::translator_type translator_type;
-    typedef typename MembersHolder::allocators_type allocators_type;
+    typedef typename Options::parameters_type parameters_type;
 
-    typedef typename index::detail::strategy_type<parameters_type>::type strategy_type;
-
-    typedef typename MembersHolder::node node;
-    typedef typename MembersHolder::internal_node internal_node;
-    typedef typename MembersHolder::leaf leaf;
+    typedef typename rtree::node<Value, parameters_type, Box, Allocators, typename Options::node_tag>::type node;
+    typedef typename rtree::internal_node<Value, parameters_type, Box, Allocators, typename Options::node_tag>::type internal_node;
+    typedef typename rtree::leaf<Value, parameters_type, Box, Allocators, typename Options::node_tag>::type leaf;
 
     typedef index::detail::predicates_element<DistancePredicateIndex, Predicates> nearest_predicate_access;
     typedef typename nearest_predicate_access::type nearest_predicate_type;
-    typedef typename indexable_type<translator_type>::type indexable_type;
+    typedef typename indexable_type<Translator>::type indexable_type;
 
-    typedef index::detail::calculate_distance<nearest_predicate_type, indexable_type, strategy_type, value_tag> calculate_value_distance;
-    typedef index::detail::calculate_distance<nearest_predicate_type, box_type, strategy_type, bounds_tag> calculate_node_distance;
+    typedef index::detail::calculate_distance<nearest_predicate_type, indexable_type, value_tag> calculate_value_distance;
+    typedef index::detail::calculate_distance<nearest_predicate_type, Box, bounds_tag> calculate_node_distance;
     typedef typename calculate_value_distance::result_type value_distance_type;
     typedef typename calculate_node_distance::result_type node_distance_type;
 
     static const unsigned predicates_len = index::detail::predicates_length<Predicates>::value;
 
-    inline distance_query(parameters_type const& parameters, translator_type const& translator, Predicates const& pred, OutIter out_it)
+    inline distance_query(parameters_type const& parameters, Translator const& translator, Predicates const& pred, OutIter out_it)
         : m_parameters(parameters), m_translator(translator)
         , m_pred(pred)
         , m_result(nearest_predicate_access::get(m_pred).count, out_it)
-        , m_strategy(index::detail::get_strategy(parameters))
     {}
 
     inline void operator()(internal_node const& n)
@@ -141,7 +133,7 @@ public:
         // array of active nodes
         typedef typename index::detail::rtree::container_from_elements_type<
             elements_type,
-            std::pair<node_distance_type, typename allocators_type::node_pointer>
+            std::pair<node_distance_type, typename Allocators::node_pointer>
         >::type active_branch_list_type;
 
         active_branch_list_type active_branch_list;
@@ -155,16 +147,12 @@ public:
         {
             // if current node meets predicates
             // 0 - dummy value
-            if ( index::detail::predicates_check
-                    <
-                        index::detail::bounds_tag, 0, predicates_len
-                    >(m_pred, 0, it->first, m_strategy) )
+            if ( index::detail::predicates_check<index::detail::bounds_tag, 0, predicates_len>(m_pred, 0, it->first) )
             {
                 // calculate node's distance(s) for distance predicate
                 node_distance_type node_distance;
                 // if distance isn't ok - move to the next node
-                if ( !calculate_node_distance::apply(predicate(), it->first,
-                                                     m_strategy, node_distance) )
+                if ( !calculate_node_distance::apply(predicate(), it->first, node_distance) )
                 {
                     continue;
                 }
@@ -238,16 +226,12 @@ public:
             it != elements.end(); ++it)
         {
             // if value meets predicates
-            if ( index::detail::predicates_check
-                    <
-                        index::detail::value_tag, 0, predicates_len
-                    >(m_pred, *it, m_translator(*it), m_strategy) )
+            if ( index::detail::predicates_check<index::detail::value_tag, 0, predicates_len>(m_pred, *it, m_translator(*it)) )
             {
                 // calculate values distance for distance predicate
                 value_distance_type value_distance;
                 // if distance is ok
-                if ( calculate_value_distance::apply(predicate(), m_translator(*it),
-                                                     m_strategy, value_distance) )
+                if ( calculate_value_distance::apply(predicate(), m_translator(*it), value_distance) )
                 {
                     // store value
                     m_result.store(*it, value_distance);
@@ -263,15 +247,15 @@ public:
 
 private:
     static inline bool abl_less(
-        std::pair<node_distance_type, typename allocators_type::node_pointer> const& p1,
-        std::pair<node_distance_type, typename allocators_type::node_pointer> const& p2)
+        std::pair<node_distance_type, typename Allocators::node_pointer> const& p1,
+        std::pair<node_distance_type, typename Allocators::node_pointer> const& p2)
     {
         return p1.first < p2.first;
     }
 
     //static inline bool abl_greater(
-    //    std::pair<node_distance_type, typename allocators_type::node_pointer> const& p1,
-    //    std::pair<node_distance_type, typename allocators_type::node_pointer> const& p2)
+    //    std::pair<node_distance_type, typename Allocators::node_pointer> const& p1,
+    //    std::pair<node_distance_type, typename Allocators::node_pointer> const& p2)
     //{
     //    return p1.first > p2.first;
     //}
@@ -288,47 +272,43 @@ private:
     }
 
     parameters_type const& m_parameters;
-    translator_type const& m_translator;
+    Translator const& m_translator;
 
     Predicates m_pred;
-    distance_query_result<value_type, translator_type, value_distance_type, OutIter> m_result;
-
-    strategy_type m_strategy;
+    distance_query_result<Value, Translator, value_distance_type, OutIter> m_result;
 };
 
 template <
-    typename MembersHolder,
+    typename Value,
+    typename Options,
+    typename Translator,
+    typename Box,
+    typename Allocators,
     typename Predicates,
     unsigned DistancePredicateIndex
 >
 class distance_query_incremental
-    : public MembersHolder::visitor_const
+    : public rtree::visitor<Value, typename Options::parameters_type, Box, Allocators, typename Options::node_tag, true>::type
 {
 public:
-    typedef typename MembersHolder::value_type value_type;
-    typedef typename MembersHolder::box_type box_type;
-    typedef typename MembersHolder::parameters_type parameters_type;
-    typedef typename MembersHolder::translator_type translator_type;
-    typedef typename MembersHolder::allocators_type allocators_type;
+    typedef typename Options::parameters_type parameters_type;
 
-    typedef typename index::detail::strategy_type<parameters_type>::type strategy_type;
-
-    typedef typename MembersHolder::node node;
-    typedef typename MembersHolder::internal_node internal_node;
-    typedef typename MembersHolder::leaf leaf;
+    typedef typename rtree::node<Value, parameters_type, Box, Allocators, typename Options::node_tag>::type node;
+    typedef typename rtree::internal_node<Value, parameters_type, Box, Allocators, typename Options::node_tag>::type internal_node;
+    typedef typename rtree::leaf<Value, parameters_type, Box, Allocators, typename Options::node_tag>::type leaf;
 
     typedef index::detail::predicates_element<DistancePredicateIndex, Predicates> nearest_predicate_access;
     typedef typename nearest_predicate_access::type nearest_predicate_type;
-    typedef typename indexable_type<translator_type>::type indexable_type;
+    typedef typename indexable_type<Translator>::type indexable_type;
     
-    typedef index::detail::calculate_distance<nearest_predicate_type, indexable_type, strategy_type, value_tag> calculate_value_distance;
-    typedef index::detail::calculate_distance<nearest_predicate_type, box_type, strategy_type, bounds_tag> calculate_node_distance;
+    typedef index::detail::calculate_distance<nearest_predicate_type, indexable_type, value_tag> calculate_value_distance;
+    typedef index::detail::calculate_distance<nearest_predicate_type, Box, bounds_tag> calculate_node_distance;
     typedef typename calculate_value_distance::result_type value_distance_type;
     typedef typename calculate_node_distance::result_type node_distance_type;
 
-    typedef typename allocators_type::size_type size_type;
-    typedef typename allocators_type::const_reference const_reference;
-    typedef typename allocators_type::node_pointer node_pointer;
+    typedef typename Allocators::size_type size_type;
+    typedef typename Allocators::const_reference const_reference;
+    typedef typename Allocators::node_pointer node_pointer;
 
     static const unsigned predicates_len = index::detail::predicates_length<Predicates>::value;
 
@@ -362,15 +342,14 @@ public:
 //        , m_pred()
         , current_neighbor((std::numeric_limits<size_type>::max)())
 //        , next_closest_node_distance((std::numeric_limits<node_distance_type>::max)())
-//        , m_strategy_type()
     {}
 
-    inline distance_query_incremental(parameters_type const& params, translator_type const& translator, Predicates const& pred)
+    inline distance_query_incremental(Translator const& translator, Predicates const& pred)
         : m_translator(::boost::addressof(translator))
         , m_pred(pred)
         , current_neighbor((std::numeric_limits<size_type>::max)())
+
         , next_closest_node_distance((std::numeric_limits<node_distance_type>::max)())
-        , m_strategy(index::detail::get_strategy(params))
     {
         BOOST_GEOMETRY_INDEX_ASSERT(0 < max_count(), "k must be greather than 0");
     }
@@ -478,16 +457,12 @@ public:
         {
             // if current node meets predicates
             // 0 - dummy value
-            if ( index::detail::predicates_check
-                    <
-                        index::detail::bounds_tag, 0, predicates_len
-                    >(m_pred, 0, it->first, m_strategy) )
+            if ( index::detail::predicates_check<index::detail::bounds_tag, 0, predicates_len>(m_pred, 0, it->first) )
             {
                 // calculate node's distance(s) for distance predicate
                 node_distance_type node_distance;
                 // if distance isn't ok - move to the next node
-                if ( !calculate_node_distance::apply(predicate(), it->first,
-                                                     m_strategy, node_distance) )
+                if ( !calculate_node_distance::apply(predicate(), it->first, node_distance) )
                 {
                     continue;
                 }
@@ -527,16 +502,12 @@ public:
         for ( typename elements_type::const_iterator it = elements.begin() ; it != elements.end() ; ++it)
         {
             // if value meets predicates
-            if ( index::detail::predicates_check
-                    <
-                        index::detail::value_tag, 0, predicates_len
-                    >(m_pred, *it, (*m_translator)(*it), m_strategy) )
+            if ( index::detail::predicates_check<index::detail::value_tag, 0, predicates_len>(m_pred, *it, (*m_translator)(*it)) )
             {
                 // calculate values distance for distance predicate
                 value_distance_type value_distance;
                 // if distance is ok
-                if ( calculate_value_distance::apply(predicate(), (*m_translator)(*it),
-                                                     m_strategy, value_distance) )
+                if ( calculate_value_distance::apply(predicate(), (*m_translator)(*it), value_distance) )
                 {
                     // if there is not enough values or current value is closer than furthest neighbour
                     if ( not_enough_neighbors || value_distance < greatest_distance )
@@ -555,14 +526,14 @@ public:
     }
 
 private:
-    static inline bool abl_less(std::pair<node_distance_type, node_pointer> const& p1,
-                                std::pair<node_distance_type, node_pointer> const& p2)
+    static inline bool abl_less(std::pair<node_distance_type, typename Allocators::node_pointer> const& p1,
+                                std::pair<node_distance_type, typename Allocators::node_pointer> const& p2)
     {
         return p1.first < p2.first;
     }
 
-    static inline bool neighbors_less(std::pair<value_distance_type, const value_type *> const& p1,
-                                      std::pair<value_distance_type, const value_type *> const& p2)
+    static inline bool neighbors_less(std::pair<value_distance_type, const Value *> const& p1,
+                                      std::pair<value_distance_type, const Value *> const& p2)
     {
         return p1.first < p2.first;
     }
@@ -600,16 +571,14 @@ private:
         return nearest_predicate_access::get(m_pred);
     }
 
-    const translator_type * m_translator;
+    const Translator * m_translator;
 
     Predicates m_pred;
-    
+
     internal_stack_type internal_stack;
-    std::vector< std::pair<value_distance_type, const value_type *> > neighbors;
+    std::vector< std::pair<value_distance_type, const Value *> > neighbors;
     size_type current_neighbor;
     node_distance_type next_closest_node_distance;
-
-    strategy_type m_strategy;
 };
 
 }}} // namespace detail::rtree::visitors

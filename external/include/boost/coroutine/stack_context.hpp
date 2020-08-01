@@ -21,7 +21,7 @@ namespace boost {
 namespace coroutines {
 
 #if defined(BOOST_USE_SEGMENTED_STACKS)
-struct BOOST_COROUTINES_DECL stack_context
+struct stack_context
 {
     typedef void *  segments_context[BOOST_CONTEXT_SEGMENTS];
 
@@ -40,7 +40,7 @@ struct BOOST_COROUTINES_DECL stack_context
     {}
 };
 #else
-struct BOOST_COROUTINES_DECL stack_context
+struct stack_context
 {
     std::size_t             size;
     void                *   sp;

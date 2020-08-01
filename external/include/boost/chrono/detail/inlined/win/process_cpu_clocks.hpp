@@ -19,10 +19,10 @@
 #include <time.h>
 #include <boost/assert.hpp>
 
-#include <boost/winapi/get_last_error.hpp>
-#include <boost/winapi/get_current_process.hpp>
+#include <boost/detail/winapi/get_last_error.hpp>
+#include <boost/detail/winapi/get_current_process.hpp>
 #if BOOST_PLAT_WINDOWS_DESKTOP
-#include <boost/winapi/get_process_times.hpp>
+#include <boost/detail/winapi/get_process_times.hpp>
 #endif
 
 namespace boost
@@ -53,10 +53,10 @@ process_real_cpu_clock::time_point process_real_cpu_clock::now(
             boost::throw_exception(
                     system::system_error(
                             errno,
-                            ::boost::system::system_category(),
+                            BOOST_CHRONO_SYSTEM_CATEGORY,
                             "chrono::process_real_cpu_clock" ));
     }
-    if (!::boost::chrono::is_throws(ec))
+    if (!BOOST_CHRONO_IS_THROWS(ec))
     {
       ec.clear();
     }
@@ -72,10 +72,10 @@ process_user_cpu_clock::time_point process_user_cpu_clock::now() BOOST_NOEXCEPT
 {
 
     //  note that Windows uses 100 nanosecond ticks for FILETIME
-    boost::winapi::FILETIME_ creation, exit, user_time, system_time;
+    boost::detail::winapi::FILETIME_ creation, exit, user_time, system_time;
 
-    if ( boost::winapi::GetProcessTimes(
-            boost::winapi::GetCurrentProcess(), &creation, &exit,
+    if ( boost::detail::winapi::GetProcessTimes(
+            boost::detail::winapi::GetCurrentProcess(), &creation, &exit,
             &system_time, &user_time ) )
     {
         return time_point(duration(
@@ -97,13 +97,13 @@ process_user_cpu_clock::time_point process_user_cpu_clock::now(
 {
 
     //  note that Windows uses 100 nanosecond ticks for FILETIME
-    boost::winapi::FILETIME_ creation, exit, user_time, system_time;
+    boost::detail::winapi::FILETIME_ creation, exit, user_time, system_time;
 
-    if ( boost::winapi::GetProcessTimes(
-            boost::winapi::GetCurrentProcess(), &creation, &exit,
+    if ( boost::detail::winapi::GetProcessTimes(
+            boost::detail::winapi::GetCurrentProcess(), &creation, &exit,
             &system_time, &user_time ) )
     {
-        if (!::boost::chrono::is_throws(ec))
+        if (!BOOST_CHRONO_IS_THROWS(ec))
         {
             ec.clear();
         }
@@ -114,18 +114,18 @@ process_user_cpu_clock::time_point process_user_cpu_clock::now(
     }
     else
     {
-        boost::winapi::DWORD_ cause = boost::winapi::GetLastError();
-        if (::boost::chrono::is_throws(ec))
+        boost::detail::winapi::DWORD_ cause = boost::detail::winapi::GetLastError();
+        if (BOOST_CHRONO_IS_THROWS(ec))
         {
             boost::throw_exception(
                     system::system_error(
                             cause,
-                            ::boost::system::system_category(),
+                            BOOST_CHRONO_SYSTEM_CATEGORY,
                             "chrono::process_user_cpu_clock" ));
         }
         else
         {
-            ec.assign( cause, ::boost::system::system_category() );
+            ec.assign( cause, BOOST_CHRONO_SYSTEM_CATEGORY );
             return time_point();
         }
     }
@@ -137,10 +137,10 @@ process_system_cpu_clock::time_point process_system_cpu_clock::now() BOOST_NOEXC
 {
 
     //  note that Windows uses 100 nanosecond ticks for FILETIME
-    boost::winapi::FILETIME_ creation, exit, user_time, system_time;
+    boost::detail::winapi::FILETIME_ creation, exit, user_time, system_time;
 
-    if ( boost::winapi::GetProcessTimes(
-            boost::winapi::GetCurrentProcess(), &creation, &exit,
+    if ( boost::detail::winapi::GetProcessTimes(
+            boost::detail::winapi::GetCurrentProcess(), &creation, &exit,
             &system_time, &user_time ) )
     {
         return time_point(duration(
@@ -162,13 +162,13 @@ process_system_cpu_clock::time_point process_system_cpu_clock::now(
 {
 
     //  note that Windows uses 100 nanosecond ticks for FILETIME
-    boost::winapi::FILETIME_ creation, exit, user_time, system_time;
+    boost::detail::winapi::FILETIME_ creation, exit, user_time, system_time;
 
-    if ( boost::winapi::GetProcessTimes(
-            boost::winapi::GetCurrentProcess(), &creation, &exit,
+    if ( boost::detail::winapi::GetProcessTimes(
+            boost::detail::winapi::GetCurrentProcess(), &creation, &exit,
             &system_time, &user_time ) )
     {
-        if (!::boost::chrono::is_throws(ec))
+        if (!BOOST_CHRONO_IS_THROWS(ec))
         {
             ec.clear();
         }
@@ -179,18 +179,18 @@ process_system_cpu_clock::time_point process_system_cpu_clock::now(
     }
     else
     {
-        boost::winapi::DWORD_ cause = boost::winapi::GetLastError();
-        if (::boost::chrono::is_throws(ec))
+        boost::detail::winapi::DWORD_ cause = boost::detail::winapi::GetLastError();
+        if (BOOST_CHRONO_IS_THROWS(ec))
         {
             boost::throw_exception(
                     system::system_error(
                             cause,
-                            ::boost::system::system_category(),
+                            BOOST_CHRONO_SYSTEM_CATEGORY,
                             "chrono::process_system_cpu_clock" ));
         }
         else
         {
-            ec.assign( cause, ::boost::system::system_category() );
+            ec.assign( cause, BOOST_CHRONO_SYSTEM_CATEGORY );
             return time_point();
         }
     }
@@ -202,10 +202,10 @@ process_cpu_clock::time_point process_cpu_clock::now()  BOOST_NOEXCEPT
 {
 
     //  note that Windows uses 100 nanosecond ticks for FILETIME
-    boost::winapi::FILETIME_ creation, exit, user_time, system_time;
+    boost::detail::winapi::FILETIME_ creation, exit, user_time, system_time;
 
-    if ( boost::winapi::GetProcessTimes(
-            boost::winapi::GetCurrentProcess(), &creation, &exit,
+    if ( boost::detail::winapi::GetProcessTimes(
+            boost::detail::winapi::GetCurrentProcess(), &creation, &exit,
             &system_time, &user_time ) )
     {
         time_point::rep r(process_real_cpu_clock::now().time_since_epoch().count()
@@ -233,13 +233,13 @@ process_cpu_clock::time_point process_cpu_clock::now(
 {
 
     //  note that Windows uses 100 nanosecond ticks for FILETIME
-    boost::winapi::FILETIME_ creation, exit, user_time, system_time;
+    boost::detail::winapi::FILETIME_ creation, exit, user_time, system_time;
 
-    if ( boost::winapi::GetProcessTimes(
-            boost::winapi::GetCurrentProcess(), &creation, &exit,
+    if ( boost::detail::winapi::GetProcessTimes(
+            boost::detail::winapi::GetCurrentProcess(), &creation, &exit,
             &system_time, &user_time ) )
     {
-        if (!::boost::chrono::is_throws(ec))
+        if (!BOOST_CHRONO_IS_THROWS(ec))
         {
             ec.clear();
         }
@@ -256,18 +256,18 @@ process_cpu_clock::time_point process_cpu_clock::now(
     }
     else
     {
-        boost::winapi::DWORD_ cause = boost::winapi::GetLastError();
-        if (::boost::chrono::is_throws(ec))
+        boost::detail::winapi::DWORD_ cause = boost::detail::winapi::GetLastError();
+        if (BOOST_CHRONO_IS_THROWS(ec))
         {
             boost::throw_exception(
                     system::system_error(
                             cause,
-                            ::boost::system::system_category(),
+                            BOOST_CHRONO_SYSTEM_CATEGORY,
                             "chrono::process_cpu_clock" ));
         }
         else
         {
-            ec.assign( cause, ::boost::system::system_category() );
+            ec.assign( cause, BOOST_CHRONO_SYSTEM_CATEGORY );
             return time_point();
         }
     }

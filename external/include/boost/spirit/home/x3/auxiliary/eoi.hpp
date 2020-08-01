@@ -35,7 +35,7 @@ namespace boost { namespace spirit { namespace x3
         result_type operator()(eoi_parser const &) const { return "eoi"; }
     };
 
-    constexpr auto eoi = eoi_parser{};
+    auto const eoi = eoi_parser{};
 }}}
 
 #endif

@@ -28,11 +28,11 @@
 namespace boost {
 namespace unit_test {
 
-class BOOST_TEST_DECL lazy_ostream {
+class lazy_ostream {
 public:
     virtual                 ~lazy_ostream()                                         {}
 
-    static lazy_ostream&    instance()                                              { return inst; }
+    static lazy_ostream&    instance()                                              { static lazy_ostream inst; return inst; }
 
     friend std::ostream&    operator<<( std::ostream& ostr, lazy_ostream const& o ) { return o( ostr ); }
 
@@ -47,7 +47,6 @@ protected:
 private:
     // Data members
     bool                    m_empty;
-    static lazy_ostream     inst;
 };
 
 //____________________________________________________________________________//

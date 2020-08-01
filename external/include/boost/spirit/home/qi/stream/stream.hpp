@@ -15,7 +15,7 @@
 #include <boost/spirit/home/qi/stream/detail/match_manip.hpp>
 #include <boost/spirit/home/qi/stream/detail/iterator_source.hpp>
 #include <boost/spirit/home/support/detail/hold_any.hpp>
-#include <boost/proto/traits.hpp>
+
 #include <iosfwd>
 #include <sstream>
 
@@ -71,10 +71,7 @@ namespace boost { namespace spirit { namespace qi
             // advance the iterator if everything is ok
             if (in) {
                 if (!in.eof()) {
-                    typedef typename
-                        boost::iterator_difference<Iterator>::type diff_type;
-
-                    diff_type pos = static_cast<diff_type>(in.tellg());
+                    std::streamsize pos = in.tellg();
                     std::advance(first, pos);
                 } else {
                     first = last;

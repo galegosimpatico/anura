@@ -18,7 +18,7 @@
 #include <immintrin.h>
 #endif
 
-#if BOOST_COMP_MSVC && !defined(_M_ARM) && !defined(_M_ARM64)
+#if BOOST_COMP_MSVC
 #include <mmintrin.h>
 #endif
 
@@ -44,7 +44,7 @@ void prefetch( void * addr) {
     // L1 cache : hint == _MM_HINT_T0
     _mm_prefetch( (const char *)addr, _MM_HINT_T0);
 }
-#elif BOOST_COMP_MSVC && !defined(_M_ARM) && !defined(_M_ARM64)
+#elif BOOST_COMP_MSVC
 #define BOOST_HAS_PREFETCH 1
 BOOST_FORCEINLINE
 void prefetch( void * addr) {

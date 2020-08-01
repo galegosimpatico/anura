@@ -17,7 +17,6 @@
 
 // Boost.Test Runtime parameters
 #include <boost/test/utils/runtime/fwd.hpp>
-#include <cstring>
 
 #include <boost/test/detail/suppress_warnings.hpp>
 
@@ -48,7 +47,7 @@ public:
     /// Returns new argc
     int         remainder()
     {
-        return static_cast<int>(m_argc);
+        return m_argc;
     }
 
     /// Returns true, if we reached end on input

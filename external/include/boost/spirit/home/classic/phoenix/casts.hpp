@@ -7,8 +7,8 @@
   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
 
-#ifndef BOOST_SPIRIT_CLASSIC_PHOENIX_CASTS_HPP
-#define BOOST_SPIRIT_CLASSIC_PHOENIX_CASTS_HPP
+#ifndef PHOENIX_CASTS_HPP
+#define PHOENIX_CASTS_HPP
 
 ///////////////////////////////////////////////////////////////////////////////
 #include <boost/spirit/home/classic/phoenix/actor.hpp>
@@ -183,7 +183,7 @@ const_cast_(actor<BaseAT> const& a)
 //          A a = construct_<A>(...arbitrary list of actors...);
 //
 //      where the given parameters are submitted as parameters to the
-//      constructor of the object of type A. (This certainly implies, that
+//      contructor of the object of type A. (This certainly implies, that
 //      type A has a constructor with a fitting set of parameter types
 //      defined.)
 //
@@ -1467,4 +1467,4 @@ construct_(
 ///////////////////////////////////////////////////////////////////////////////
 }   //  namespace phoenix
 
-#endif
+#endif // PHOENIX_CASTS_HPP

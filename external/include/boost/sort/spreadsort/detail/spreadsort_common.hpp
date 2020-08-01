@@ -22,7 +22,6 @@ Phil Endecott and Frank Gennari
 #include <functional>
 #include <boost/static_assert.hpp>
 #include <boost/serialization/static_warning.hpp>
-#include <boost/sort/pdqsort/pdqsort.hpp>
 #include <boost/sort/spreadsort/detail/constants.hpp>
 #include <boost/cstdint.hpp>
 
@@ -38,7 +37,7 @@ namespace spreadsort {
       unsigned result = 0;
       //The && is necessary on some compilers to avoid infinite loops
       //it doesn't significantly impair performance
-      while ((result < (8*sizeof(T))) && (input >> result)) ++result;
+      while ((input >> result) && (result < (8*sizeof(T)))) ++result;
       return result;
     }
 
