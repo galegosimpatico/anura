@@ -75,7 +75,7 @@ void show_controls_dialog()
 	WidgetPtr t2(new GraphicalFontLabel(_("Jump"), "door_label", 2));
 	WidgetPtr b5(KeyButtons[CONTROL_JUMP]);
 	WidgetPtr t3(new GraphicalFontLabel(_("Tongue"), "door_label", 2));
-	WidgetPtr b6(KeyButtons[CONTROL_TONGUE]);
+	//WidgetPtr b6(KeyButtons[CONTROL_TONGUE]);
 	WidgetPtr t4(new GraphicalFontLabel(_("Attack"), "door_label", 2));
 	WidgetPtr b7(KeyButtons[CONTROL_ATTACK]);
 	WidgetPtr b8(new Button(WidgetPtr(new GraphicalFontLabel(_("Back"), "door_label", 2)), std::bind(end_dialog, &d), BUTTON_STYLE_DEFAULT, BUTTON_SIZE_DOUBLE_RESOLUTION));
@@ -92,7 +92,7 @@ void show_controls_dialog()
 	d.addWidget(t2, static_cast<int>(d.width()/2 - b1->width()*1.5 - d.padding()), start_y);
 	d.addWidget(b5);
 	d.addWidget(t3, d.width()/2 - b1->width()/2, start_y);
-	d.addWidget(b6);
+	//d.addWidget(b6);
 	d.addWidget(t4, d.width()/2 + b1->width()/2 + d.padding(), start_y);
 	d.addWidget(b7);
 	d.addWidget(b8, d.width()/2 - b8->width()/2, start_y + t2->height() + b5->height() + 3*d.padding());

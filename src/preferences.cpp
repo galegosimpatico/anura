@@ -946,7 +946,7 @@ namespace preferences
 		controls::set_keycode(controls::CONTROL_RIGHT, static_cast<key_type>(node["key_right"].as_int(SDLK_RIGHT)));
 		controls::set_keycode(controls::CONTROL_ATTACK, static_cast<key_type>(node["key_attack"].as_int(SDLK_d)));
 		controls::set_keycode(controls::CONTROL_JUMP, static_cast<key_type>(node["key_jump"].as_int(SDLK_a)));
-		controls::set_keycode(controls::CONTROL_TONGUE, static_cast<key_type>(node["key_tongue"].as_int(SDLK_s)));
+		//controls::set_keycode(controls::CONTROL_TONGUE, static_cast<key_type>(node["key_tongue"].as_int(SDLK_s)));
 
 		int ctrl_item = 0;
 		for(const char** control_name = controls::control_names(); *control_name && ctrl_item != controls::NUM_CONTROLS; ++control_name, ++ctrl_item) {
@@ -977,7 +977,7 @@ namespace preferences
 		node.add("key_right", controls::get_keycode(controls::CONTROL_RIGHT));
 		node.add("key_attack", controls::get_keycode(controls::CONTROL_ATTACK));
 		node.add("key_jump", controls::get_keycode(controls::CONTROL_JUMP));
-		node.add("key_tongue", controls::get_keycode(controls::CONTROL_TONGUE));
+		//node.add("key_tongue", controls::get_keycode(controls::CONTROL_TONGUE));
 		node.add("show_iphone_controls", variant::from_bool(show_iphone_controls_));
 
 		for(int n = 1; n <= 3; ++n) {

@@ -100,8 +100,8 @@ namespace controls
 		SDLK_LEFT,
 		SDLK_RIGHT,
 		SDLK_d,
-		SDLK_a,
-		SDLK_s
+		SDLK_a/*,
+		SDLK_s*/
 	};
 
 	CONTROL_ITEM g_mouse_controls[3] = {
