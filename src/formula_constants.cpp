@@ -90,7 +90,8 @@ namespace game_logic
 		} else if(id == "JUMP_KEY") {
 			return variant(gui::KeyButton::getKeyName(controls::get_keycode(controls::CONTROL_JUMP)));
 		} else if(id == "TONGUE_KEY") {
-			return variant(gui::KeyButton::getKeyName(controls::get_keycode(controls::CONTROL_TONGUE)));
+			//return variant(gui::KeyButton::getKeyName(controls::get_keycode(controls::CONTROL_TONGUE)));
+            return variant("OBSOLETE");
 		} else if(id == "ATTACK_KEY") {
 			return variant(gui::KeyButton::getKeyName(controls::get_keycode(controls::CONTROL_ATTACK)));
 		} else if(id == "LOCALE") {
