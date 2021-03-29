@@ -567,7 +567,7 @@ namespace gui
 		if(!claimed && opened_) {
 			if(ev.type == SDL_KEYDOWN) {
 				if(ev.key.keysym.sym == controls::get_keycode(controls::CONTROL_ATTACK) 
-					|| ev.key.keysym.sym == controls::get_keycode(controls::CONTROL_JUMP)) {
+					/*|| ev.key.keysym.sym == controls::get_keycode(controls::CONTROL_JUMP)*/) {
 					doSelectEvent();
 				}
 				if(ev.key.keysym.sym == SDLK_TAB) {

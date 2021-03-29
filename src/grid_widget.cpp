@@ -568,7 +568,7 @@ namespace gui
 					}
 					claimed = true;
 				} else if(ev.key.keysym.sym == controls::get_keycode(controls::CONTROL_ATTACK) 
-					|| ev.key.keysym.sym == controls::get_keycode(controls::CONTROL_JUMP)) {
+					/*|| ev.key.keysym.sym == controls::get_keycode(controls::CONTROL_JUMP)*/) {
 					if(on_select_) {
 						on_select_(selected_row_);
 					}

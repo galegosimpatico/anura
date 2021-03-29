@@ -124,8 +124,8 @@ bool SpeechDialog::keyPress(const SDL_Event& event)
 				moveUp();
 			} else if(event.key.keysym.sym == get_keycode(controls::CONTROL_DOWN)) {
 				moveDown();
-			} else if(event.key.keysym.sym == SDLK_RETURN || event.key.keysym.sym == SDLK_SPACE ||
-				event.key.keysym.sym == get_keycode(controls::CONTROL_JUMP)/* ||
+			} else if(event.key.keysym.sym == SDLK_RETURN || event.key.keysym.sym == SDLK_SPACE/* ||
+				event.key.keysym.sym == get_keycode(controls::CONTROL_JUMP) ||
 				event.key.keysym.sym == get_keycode(controls::CONTROL_TONGUE)*/) {
 				return true;
 			}

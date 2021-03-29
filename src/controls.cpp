@@ -99,8 +99,8 @@ namespace controls
 		SDLK_DOWN,
 		SDLK_LEFT,
 		SDLK_RIGHT,
-		SDLK_d,
-		SDLK_a/*,
+		SDLK_d/*,
+		SDLK_a,
 		SDLK_s*/
 	};
 

@@ -372,7 +372,7 @@ namespace gui
 		if(hasFocus() && dropdown_menu_) {
 			if(event.type == SDL_KEYDOWN 
 				&& (event.key.keysym.sym == controls::get_keycode(controls::CONTROL_ATTACK) 
-				|| event.key.keysym.sym == controls::get_keycode(controls::CONTROL_JUMP))) {
+				/*|| event.key.keysym.sym == controls::get_keycode(controls::CONTROL_JUMP)*/)) {
 				claimed = true;
 				dropdown_menu_->setVisible(!dropdown_menu_->visible());
 			}

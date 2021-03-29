@@ -73,7 +73,7 @@ void show_controls_dialog()
 	WidgetPtr b3(KeyButtons[CONTROL_LEFT]);
 	WidgetPtr b4(KeyButtons[CONTROL_RIGHT]);
 	WidgetPtr t2(new GraphicalFontLabel(_("Jump"), "door_label", 2));
-	WidgetPtr b5(KeyButtons[CONTROL_JUMP]);
+	//WidgetPtr b5(KeyButtons[CONTROL_JUMP]);
 	WidgetPtr t3(new GraphicalFontLabel(_("Tongue"), "door_label", 2));
 	//WidgetPtr b6(KeyButtons[CONTROL_TONGUE]);
 	WidgetPtr t4(new GraphicalFontLabel(_("Attack"), "door_label", 2));
@@ -90,12 +90,12 @@ void show_controls_dialog()
 
 	start_y += t1->height() + 5*d.padding() + 2*b1->height();
 	d.addWidget(t2, static_cast<int>(d.width()/2 - b1->width()*1.5 - d.padding()), start_y);
-	d.addWidget(b5);
+	//d.addWidget(b5);
 	d.addWidget(t3, d.width()/2 - b1->width()/2, start_y);
 	//d.addWidget(b6);
 	d.addWidget(t4, d.width()/2 + b1->width()/2 + d.padding(), start_y);
 	d.addWidget(b7);
-	d.addWidget(b8, d.width()/2 - b8->width()/2, start_y + t2->height() + b5->height() + 3*d.padding());
+	d.addWidget(b8, d.width()/2 - b8->width()/2, start_y + t2->height() + /*b5->height() + */3*d.padding());
 
 	d.showModal();
 }
